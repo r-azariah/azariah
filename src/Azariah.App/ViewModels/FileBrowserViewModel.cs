@@ -20,7 +20,7 @@ public enum SortColumn
 /// <summary>A reusable file browser bound to a root folder (the whole drive, Roblox, Transfer, ...).</summary>
 public sealed partial class FileBrowserViewModel : ViewModelBase
 {
-    private static readonly HashSet<string> RunnableExtensions = new(StringComparer.OrdinalIgnoreCase)
+    internal static readonly HashSet<string> RunnableExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".exe", ".msi", ".msix", ".msixbundle", ".appx", ".appxbundle", ".bat", ".cmd", ".ps1", ".vbs",
         ".vbe", ".js", ".jse", ".wsf", ".wsh", ".scr", ".com", ".lnk", ".hta", ".cpl", ".jar", ".reg",

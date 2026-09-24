@@ -89,26 +89,6 @@ public sealed partial class FilesPageViewModel : ViewModelBase
     [RelayCommand]
     private void OpenSection(SectionLink link) => Browser.NavigateTo(link.Path);
 
-    /// <summary>Roblox\Games\ holds one folder per game; the rest of Roblox\ is general stuff not tied to a game.</summary>
-    public static FilesPageViewModel Roblox(WorkspaceSession s) =>
-        new("Roblox",
-        [
-            new ScopeItem("Games", new FileBrowserViewModel(s, s.Layout.Games, "Games")),
-            new ScopeItem("General", new FileBrowserViewModel(s, s.Layout.Roblox, "Roblox")),
-        ])
-        {
-            Filters =
-            [
-                new FilterChip("All", null) { IsActive = true },
-                new FilterChip("Places", new HashSet<FileKind> { FileKind.RobloxPlace }),
-                new FilterChip("Scripts", new HashSet<FileKind> { FileKind.LuauScript }),
-                new FilterChip("Models", new HashSet<FileKind> { FileKind.RobloxModel }),
-                new FilterChip("Images", new HashSet<FileKind> { FileKind.Image }),
-                new FilterChip("Docs", new HashSet<FileKind> { FileKind.Text, FileKind.Document, FileKind.Pdf }),
-                new FilterChip("Backups", new HashSet<FileKind> { FileKind.Archive }),
-            ],
-        };
-
     public static FilesPageViewModel SetupKit(WorkspaceSession s)
     {
         var kit = s.Layout.SetupKit;

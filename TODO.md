@@ -82,12 +82,23 @@ Read this first when picking up the project in a new session.
   "take no action" once per PC while auto-launch is on (Windows can only cancel AutoPlay for one drive
   through an HKLM key, and the app never needs admin). The old choice is kept in launcher.json and put
   back when auto-launch is turned off for the last drive; a choice made in Windows later is left alone.
+- v0.8, first real features:
+  - Roblox > Games: `Core/Roblox/RobloxProjects` reads each `Roblox\Games\<GAME>` from its files (title,
+    intro lines and "## Next" section of CLAUDE.md, place ID, newest PASSES.md entry, LATEST save, Old
+    Versions). Page: Open in Studio, Save new version (copy in, old LATEST to Old Versions as
+    `yyyy-MM-dd <Name>.rbxl`, new file becomes `<Name> (LATEST yyyy-MM-dd).rbxl`, all through
+    FileOperationService), Folder, Notes, Roblox page, New game. General tab = the old Roblox\ browser.
+  - Ctrl+Space (or Ctrl+K) command bar: pages, games, "Open <game> in Studio", recent files, name search
+    across the drive, and "Search inside scripts" (`ContentSearchService`, Luau line matches).
+  - Home lists games first (most recently changed with content), then Recent.
+  - `IShellService.OpenUri` (http/https only); `WorkspaceViewModel.OpenPathAsync` is the one place that
+    opens paths (programs ask first).
 
 ## Next, in order
 
-0. **Features that do something** (owner, 2026-09-24). Candidates the owner hasn't ranked: Roblox project pages (status from each game's CLAUDE.md, last pass, LATEST place with
-   Open in Studio, Old Versions, "save new version"), Home = where I left off, Ctrl+Space command bar,
-   one-button new-PC setup.
+0. **Features that do something** (owner, 2026-09-24). Done in v0.8: Roblox projects, Home games, Ctrl+Space.
+   Next candidates: one-button new-PC setup; "Save new version" offering the newest .rbxl found on this PC;
+   more command bar actions (new game, open a game's notes); AI in the command bar (Phase 7).
 1. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
    three typography directions and asking the owner. Don't build screens before they choose.
 2. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.

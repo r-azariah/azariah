@@ -4,9 +4,40 @@
              xmlns:app="using:Azariah.App"
              x:Class="Azariah.App.Views.WorkspaceView"
              x:DataType="vm:WorkspaceViewModel">
+  <UserControl.Styles>
+    <Style Selector="ListBox.commands">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.commands ListBoxItem">
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="ListBox.commands ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AzHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.commands ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AzSelectionBrush}" />
+    </Style>
+    <Style Selector="TextBox.command">
+      <Setter Property="FontSize" Value="17" />
+      <Setter Property="Padding" Value="14,11" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TextBox.command:focus /template/ Border#PART_BorderElement">
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TextBox.command:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
   <Grid ColumnDefinitions="200,*">
     <!-- Sidebar: mark, drive, places. Interim layout until the redesign lands. -->
-    <Grid RowDefinitions="Auto,*" Margin="24,24,12,20">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24,24,12,20">
       <StackPanel Spacing="14" Margin="12,0,0,28">
         <Path Data="{x:Static app:Brand.Wordmark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
               Height="22" HorizontalAlignment="Left" />
@@ -23,9 +54,48 @@
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
+
+      <Button Grid.Row="2" Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12,8"
+              Command="{Binding OpenCommandBarCommand}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Go to" Classes="muted" />
+          <TextBlock Grid.Column="1" Text="Ctrl+Space" Classes="faint" FontSize="12" VerticalAlignment="Center" />
+        </Grid>
+      </Button>
     </Grid>
 
-    <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
+    <Grid Grid.Column="1">
+      <ContentControl Content="{Binding CurrentPage}" />
 
+      <!-- Command bar: Ctrl+Space. Clicking outside closes it. -->
+      <Border x:Name="CommandShade" Background="Transparent" IsVisible="{Binding CommandBar.IsOpen}" />
+      <Border IsVisible="{Binding CommandBar.IsOpen}" VerticalAlignment="Top" HorizontalAlignment="Left"
+              Margin="24,18,28,0" Width="660" MaxHeight="560"
+              Background="{DynamicResource AzSurfaceBrush}" BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="1"
+              CornerRadius="10" BoxShadow="0 12 40 0 #66000000">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <TextBox x:Name="CommandInput" Classes="command" Text="{Binding CommandBar.Query}"
+                   Watermark="Go to a page, game or file" />
+          <Border Grid.Row="1" Height="1" Background="{DynamicResource AzBorderBrush}" />
+          <Grid Grid.Row="2" RowDefinitions="Auto,*">
+            <TextBlock Text="{Binding CommandBar.Note}" IsVisible="{Binding CommandBar.HasNote}" Classes="muted" FontSize="12" Margin="16,10,16,0" />
+            <ListBox x:Name="CommandResults" Grid.Row="1" Classes="commands" Margin="6"
+                     ItemsSource="{Binding CommandBar.Results}" SelectedItem="{Binding CommandBar.Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:CommandItem">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="1">
+                      <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Detail}" IsVisible="{Binding HasDetail}" Classes="faint" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding KindText}" Classes="faint" FontSize="12" VerticalAlignment="Center" Margin="16,0,0,0" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
   </Grid>
 </UserControl>

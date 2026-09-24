@@ -116,6 +116,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Ctrl+Space (or Ctrl+K) opens the command bar from anywhere in the workspace.
+        if (e.KeyModifiers == KeyModifiers.Control && e.Key is (Key.Space or Key.K)
+            && DataContext is MainViewModel { Dialogs.Active: null, Workspace: { } workspace })
+        {
+            workspace.CommandBar.Toggle();
+            e.Handled = true;
+            return;
+        }
+
         if (DataContext is not MainViewModel { Dialogs.Active: { } dialog })
         {
             return;

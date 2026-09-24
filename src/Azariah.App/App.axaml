@@ -23,6 +23,7 @@
     <DataTemplate DataType="vm:WorkspaceViewModel"><v:WorkspaceView /></DataTemplate>
     <DataTemplate DataType="vm:HomeViewModel"><v:HomeView /></DataTemplate>
     <DataTemplate DataType="vm:FilesPageViewModel"><v:FilesPageView /></DataTemplate>
+    <DataTemplate DataType="vm:RobloxPageViewModel"><v:RobloxPageView /></DataTemplate>
     <DataTemplate DataType="vm:FileBrowserViewModel"><v:FileBrowserView /></DataTemplate>
     <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
     <DataTemplate DataType="vm:TrashViewModel"><v:TrashView /></DataTemplate>

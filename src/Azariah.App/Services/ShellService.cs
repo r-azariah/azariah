@@ -9,6 +9,9 @@ public interface IShellService
 
     void Reveal(string path);
 
+    /// <summary>Opens a web link (http/https only) in the default browser.</summary>
+    void OpenUri(Uri uri);
+
     /// <summary>Display only. Never used to decide whether a computer is trusted.</summary>
     string MachineDisplayName { get; }
 }
@@ -25,6 +28,17 @@ public sealed class ShellService : IShellService
             WorkingDirectory = Directory.Exists(path) ? path : Path.GetDirectoryName(path) ?? string.Empty,
         };
         using var _ = Process.Start(info);
+    }
+
+    public void OpenUri(Uri uri)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        if (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
+        {
+            throw new ArgumentException("Only web links can be opened.", nameof(uri));
+        }
+
+        using var _ = Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
     }
 
     public void Reveal(string path)

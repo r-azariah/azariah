@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.RobloxPageView"
+             x:DataType="vm:RobloxPageViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.key">
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBlock.val">
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.row">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0,5" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.row:pointerover TextBlock.name">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*" Margin="24,24,28,20">
+    <StackPanel Orientation="Horizontal" Spacing="24">
+      <TextBlock Classes="h1" Text="Roblox" />
+      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom" Margin="0,0,0,4">
+        <ToggleButton Content="Games" Padding="12,4" IsChecked="{Binding ShowProjects, Mode=OneWay}" Command="{Binding ShowGamesCommand}" />
+        <ToggleButton Content="General" Padding="12,4" IsChecked="{Binding ShowGeneral, Mode=OneWay}" Command="{Binding ShowGeneralFolderCommand}" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Games: one project per folder in Roblox\Games -->
+    <Grid Grid.Row="1" Margin="0,22,0,0" ColumnDefinitions="230,40,*" IsVisible="{Binding ShowProjects}">
+      <ScrollViewer>
+        <StackPanel Spacing="8">
+          <ListBox Classes="nav" ItemsSource="{Binding Projects}" SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:RobloxProjectViewModel">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding Title}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding ListDetail}" Classes="faint" FontSize="12" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <Button Classes="ghost" Content="New game" Command="{Binding NewGameCommand}" HorizontalAlignment="Left" Padding="12,6" />
+        </StackPanel>
+      </ScrollViewer>
+
+      <TextBlock Grid.Column="2" Classes="muted" Text="No games in Roblox\Games yet." IsVisible="{Binding !HasProjects}" />
+
+      <ScrollViewer Grid.Column="2" IsVisible="{Binding HasProjects}">
+        <StackPanel Spacing="26" MaxWidth="820" HorizontalAlignment="Left">
+          <StackPanel Spacing="14">
+            <TextBlock Text="{Binding Selected.Title}" FontSize="30" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8">
+              <Button Classes="primary" Content="Open in Studio" Command="{Binding OpenLatestCommand}"
+                      IsVisible="{Binding Selected.HasLatest}" />
+              <Button Content="{Binding Selected.SaveText}" Command="{Binding SaveNewVersionCommand}" Padding="14,8" />
+              <Button Classes="ghost" Content="Folder" Command="{Binding OpenFolderCommand}" />
+              <Button Classes="ghost" Content="Notes" Command="{Binding OpenNotesCommand}" />
+              <Button Classes="ghost" Content="Roblox page" Command="{Binding OpenOnRobloxCommand}"
+                      IsVisible="{Binding Selected.HasPlace}" />
+            </WrapPanel>
+            <TextBlock Text="{Binding Status}" IsVisible="{Binding HasStatus}" Classes="muted" Classes.danger="{Binding StatusIsError}"
+                       FontSize="13" TextWrapping="Wrap" />
+          </StackPanel>
+
+          <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+            <TextBlock Classes="key" Text="Latest save" />
+            <TextBlock Grid.Column="1" Classes="val" Text="{Binding Selected.LatestText}" />
+            <TextBlock Grid.Row="1" Classes="key" Text="Last pass" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+              <TextBlock Classes="val" Text="{Binding Selected.PassText}" TextWrapping="Wrap" />
+              <TextBlock Classes="key" Text="{Binding Selected.PassLine}" IsVisible="{Binding Selected.HasPassLine}" TextWrapping="Wrap" />
+            </StackPanel>
+            <TextBlock Grid.Row="2" Classes="key" Text="Place" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Classes="val" Text="{Binding Selected.PlaceText}" />
+          </Grid>
+
+          <StackPanel Spacing="6" IsVisible="{Binding Selected.HasNextStep}">
+            <TextBlock Classes="key" Text="Next" />
+            <ItemsControl ItemsSource="{Binding Selected.NextStep}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,4" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsVisible="{Binding Selected.HasSummary}">
+            <TextBlock Classes="key" Text="Notes" />
+            <ItemsControl ItemsSource="{Binding Selected.Summary}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,4" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="4" IsVisible="{Binding Selected.HasOldVersions}">
+            <TextBlock Classes="key" Text="{Binding Selected.OldVersionsTitle}" Margin="0,0,0,4" />
+            <ItemsControl ItemsSource="{Binding Selected.OldVersions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SaveItemViewModel">
+                  <Button Classes="row" Command="{Binding $parent[UserControl].((vm:RobloxPageViewModel)DataContext).OpenSaveCommand}"
+                          CommandParameter="{Binding}">
+                    <Grid ColumnDefinitions="110,*,90">
+                      <TextBlock Classes="key" Text="{Binding DateText}" />
+                      <TextBlock Grid.Column="1" Classes="val name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Classes="key" Text="{Binding SizeText}" HorizontalAlignment="Right" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- General: the rest of Roblox\ -->
+    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="0,12,0,0" IsVisible="{Binding ShowGeneral}">
+      <ItemsControl ItemsSource="{Binding Filters}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:FilterChip">
+            <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsActive, Mode=OneWay}" Padding="10,4"
+                          Command="{Binding $parent[UserControl].((vm:RobloxPageViewModel)DataContext).ApplyFilterCommand}" CommandParameter="{Binding}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ContentControl Grid.Row="1" Margin="0,14,0,0" Content="{Binding General}" />
+    </Grid>
+  </Grid>
+</UserControl>

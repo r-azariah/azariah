@@ -31,6 +31,27 @@
   <ScrollViewer>
     <Grid ColumnDefinitions="*,56,300" Margin="24,24,40,32" MaxWidth="1240">
       <StackPanel Spacing="4">
+        <StackPanel Spacing="4" IsVisible="{Binding HasGames}" Margin="0,0,0,32">
+          <TextBlock Classes="h1" Text="Games" Margin="0,0,0,10" />
+          <ItemsControl ItemsSource="{Binding Games}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:RobloxProjectViewModel">
+                <Grid ColumnDefinitions="*,220,Auto">
+                  <Button Classes="row" Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).OpenGameCommand}" CommandParameter="{Binding}">
+                    <StackPanel Spacing="1">
+                      <TextBlock Classes="name" Text="{Binding Title}" FontSize="15" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="key" Text="{Binding PassText}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Button>
+                  <TextBlock Grid.Column="1" Classes="key" Text="{Binding ListDetail}" VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
+                  <Button Grid.Column="2" Classes="ghost" Content="Open in Studio" IsVisible="{Binding HasLatest}" VerticalAlignment="Center"
+                          Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).OpenGameInStudioCommand}" CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
         <TextBlock Classes="h1" Text="Recent" Margin="0,0,0,10" />
         <TextBlock Classes="muted" Text="Nothing opened yet." IsVisible="{Binding !HasRecent}" />
         <ItemsControl ItemsSource="{Binding Recent}">

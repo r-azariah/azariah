@@ -24,6 +24,9 @@ public static class Format
     public static string Date(DateTime utc) =>
         utc.ToLocalTime().ToString("MMM d, yyyy  h:mm tt", CultureInfo.CurrentCulture);
 
+    public static string Day(DateOnly date) =>
+        date.ToString(date.Year == DateTime.Now.Year ? "MMM d" : "MMM d, yyyy", CultureInfo.CurrentCulture);
+
     public static string Ago(DateTime utc)
     {
         var span = DateTime.UtcNow - utc;

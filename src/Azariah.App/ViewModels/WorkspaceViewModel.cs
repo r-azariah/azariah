@@ -30,6 +30,8 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         var layout = session.Layout;
 
         Files = new FilesPageViewModel(session, "Files", layout.Root, "Drive");
+        Roblox = new RobloxPageViewModel(session, this);
+        CommandBar = new CommandBarViewModel(this);
 
         // Interim IA: only places that exist and do something. Vault/Passwords return when built;
         // AI becomes the command surface; Transfer is a location (see docs/DESIGN.md).
@@ -37,7 +39,7 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         [
             new("home", "Home", MaterialIconKind.HomeVariantOutline, () => new HomeViewModel(session, this)),
             new("files", "Files", MaterialIconKind.FolderOutline, () => Files),
-            new("roblox", "Roblox", MaterialIconKind.CubeOutline, () => FilesPageViewModel.Roblox(session)),
+            new("roblox", "Roblox", MaterialIconKind.CubeOutline, () => Roblox),
             new("setupkit", "Setup", MaterialIconKind.ToolboxOutline, () => FilesPageViewModel.SetupKit(session)),
             new("settings", "Settings", MaterialIconKind.CogOutline, () => new SettingsViewModel(session, this)),
         ];
@@ -48,6 +50,10 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     public WorkspaceSession Session { get; }
 
     public FilesPageViewModel Files { get; }
+
+    public RobloxPageViewModel Roblox { get; }
+
+    public CommandBarViewModel CommandBar { get; }
 
     public ObservableCollection<NavItem> NavItems { get; }
 
@@ -89,6 +95,50 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         Files.Browser.NavigateTo(folder);
     }
 
+    /// <summary>Shows one game on the Roblox page.</summary>
+    public void OpenProject(string folder)
+    {
+        Navigate("roblox");
+        Roblox.Select(folder);
+    }
+
+    /// <summary>Opens a folder in Files, or a file with its default app. Programs ask first.</summary>
+    public async Task OpenPathAsync(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            OpenInFiles(path);
+            return;
+        }
+
+        var name = Path.GetFileName(path);
+        if (FileBrowserViewModel.RunnableExtensions.Contains(Path.GetExtension(path)))
+        {
+            var ok = await Session.Dialogs.ConfirmAsync(
+                "Run this program?",
+                $"\"{name}\" will run on {Session.Shell.MachineDisplayName} with your permissions.",
+                "Run",
+                danger: true);
+            if (!ok)
+            {
+                return;
+            }
+        }
+
+        try
+        {
+            Session.Shell.Open(path);
+            Session.Recent.Add(path);
+        }
+        catch (Exception ex)
+        {
+            await Session.Dialogs.AlertAsync("Couldn't open it", $"\"{name}\": {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void OpenCommandBar() => CommandBar.Open();
+
     [RelayCommand]
     public void OpenTrash()
     {
@@ -105,6 +155,9 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
                 break;
             case FilesPageViewModel files:
                 files.Browser.Refresh();
+                break;
+            case RobloxPageViewModel roblox:
+                roblox.Refresh();
                 break;
             case SettingsViewModel settings:
                 _ = settings.RefreshAsync();

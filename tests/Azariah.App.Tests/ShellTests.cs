@@ -26,11 +26,7 @@ public class ShellTests
         Directory.CreateDirectory(root);
         var volumes = new SystemVolumeProvider();
         var marker = new DriveInitializer(volumes).Initialize(root, "AZARIAH");
-        Directory.CreateDirectory(Path.Combine(root, "Roblox", "Games", "Obby Rush"));
-        File.WriteAllText(Path.Combine(root, "Roblox", "Games", "Obby Rush", "Obby Rush (LATEST 2026-09-24).rbxl"), "x");
-        File.WriteAllText(Path.Combine(root, "Roblox", "Scripts", "SpawnHandler.luau"), "print('hi')");
-        File.WriteAllText(Path.Combine(root, "Files", "Homework notes.md"), "notes");
-        Directory.CreateDirectory(Path.Combine(root, "Files", "School"));
+        SeedData.Write(root);
 
         var located = new LocateResult(LocateOutcome.Found, root, marker, "test", []);
         var main = new MainViewModel(located, volumes, new DriveRootLocator(volumes));
@@ -53,6 +49,24 @@ public class ShellTests
                 Directory.CreateDirectory(shots);
                 SavePng(frame!, Path.Combine(shots, $"{nav.Key}.png"));
             }
+        }
+
+        // The command bar over Home, with a query typed.
+        workspace.SelectedNav = workspace.NavItems[0];
+        workspace.CommandBar.Open();
+        workspace.CommandBar.Query = "o";
+        for (var i = 0; i < 12; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(50);
+        }
+
+        Assert.NotEmpty(workspace.CommandBar.Results);
+        var bar = window.CaptureRenderedFrame();
+        Assert.NotNull(bar);
+        if (!string.IsNullOrEmpty(shots))
+        {
+            SavePng(bar!, Path.Combine(shots, "command.png"));
         }
 
         window.Close();
