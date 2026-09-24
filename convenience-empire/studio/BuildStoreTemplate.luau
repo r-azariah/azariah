@@ -3,7 +3,8 @@
 -- How to use:
 --   1. Open the Convenience Empire copy of the place. Never run this in the original TCG place.
 --   2. Select the floor part of the plot you want to build on (or a plot Model with a PrimaryPart).
---      With nothing selected, it builds at the camera focus on an 80x80 plot.
+--      With nothing selected, or something huge like the Baseplate, it builds at the camera focus
+--      on an 80x80 plot.
 --   3. Paste this whole file into the Command Bar (View > Command Bar) and press Enter.
 --
 -- It creates one Model called StoreTemplate in Workspace so you can walk around it and move
@@ -15,6 +16,7 @@
 
 local ROTATION_DEGREES = 0 -- 0, 90, 180 or 270
 local DEFAULT_PLOT_SIZE = Vector2.new(80, 80)
+local MAX_PLOT_SIZE = 300 -- anything wider (like a Baseplate) counts as open ground, not a plot
 local ROOF_TRANSPARENCY = 0.6 -- see-through while we graybox, set to 0 later
 local MARKER_TRANSPARENCY = 0.5 -- NPC spots and pads, hidden at runtime
 
@@ -37,14 +39,14 @@ local selected = Selection:Get()[1]
 if selected and selected:IsA("Model") and selected.PrimaryPart then
 	selected = selected.PrimaryPart
 end
-if selected and selected:IsA("BasePart") then
+if selected and selected:IsA("BasePart") and math.max(selected.Size.X, selected.Size.Z) <= MAX_PLOT_SIZE then
 	plotSize = Vector2.new(selected.Size.X, selected.Size.Z)
 	plotCFrame = selected.CFrame * CFrame.new(0, selected.Size.Y / 2, 0)
 else
 	local focus = workspace.CurrentCamera.Focus.Position
 	local hit = workspace:Raycast(focus + Vector3.new(0, 500, 0), Vector3.new(0, -1000, 0))
 	plotCFrame = CFrame.new(focus.X, if hit then hit.Position.Y else focus.Y, focus.Z)
-	print("[StoreTemplate] Nothing selected, building at the camera focus on an 80x80 plot.")
+	print("[StoreTemplate] No plot selected, building at the camera focus on an 80x80 plot.")
 end
 plotCFrame = plotCFrame * CFrame.Angles(0, math.rad(ROTATION_DEGREES), 0)
 if ROTATION_DEGREES % 180 ~= 0 then
