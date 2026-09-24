@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using Azariah.App.Services;
+using Azariah.App.ViewModels.Dialogs;
 using Azariah.Core.Files;
+using Azariah.Core.Roblox;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Icons;
@@ -100,6 +102,51 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     {
         Navigate("roblox");
         Roblox.Select(folder);
+    }
+
+    /// <summary>
+    /// Opens a game in Studio. The published place is the newest version; the LATEST save on the drive
+    /// is a backup that can be older, so this asks which one.
+    /// </summary>
+    public async Task OpenGameAsync(RobloxProject game)
+    {
+        ArgumentNullException.ThrowIfNull(game);
+        var published = game.PlaceId is not null && game.UniverseId is not null;
+        var options = new List<ChoiceOption>();
+        string message;
+        if (game.Latest is { } backup)
+        {
+            var saved = backup.Date is { } d ? Format.Day(d) : Format.Ago(backup.ModifiedUtc);
+            options.Add(new ChoiceOption("backup", $"Open backup ({saved})"));
+            message = published
+                ? $"Studio opens the published place, the newest version. The backup is the save from {saved}."
+                : $"The backup is the save from {saved}.";
+        }
+        else
+        {
+            message = "There's no backup on the drive yet.";
+        }
+
+        options.Add(new ChoiceOption("studio", "Open Studio", IsPrimary: true));
+        var choice = await Session.Dialogs.ChooseAsync($"Open {game.Title}", message, [.. options]);
+        if (choice == "backup" && game.Latest is { } latest)
+        {
+            await OpenPathAsync(latest.Path);
+        }
+        else if (choice == "studio")
+        {
+            try
+            {
+                if (!Session.Shell.OpenRobloxStudio(game.PlaceId, game.UniverseId))
+                {
+                    await Session.Dialogs.AlertAsync("Roblox Studio isn't installed", "Install it from create.roblox.com, or open the backup.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await Session.Dialogs.AlertAsync("Couldn't open Studio", ex.Message);
+            }
+        }
     }
 
     /// <summary>Opens a folder in Files, or a file with its default app. Programs ask first.</summary>

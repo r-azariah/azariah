@@ -244,11 +244,7 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
                 return Task.CompletedTask;
             }));
 
-            if (game.Latest is { } latest)
-            {
-                var path = latest.Path;
-                items.Add(new CommandItem($"Open {game.Title} in Studio", latest.Name, CommandKind.Place, () => workspace.OpenPathAsync(path)));
-            }
+            items.Add(new CommandItem($"Open {game.Title} in Studio", game.Latest?.Name ?? "Roblox Studio", CommandKind.Place, () => workspace.OpenGameAsync(game)));
         }
     }
 

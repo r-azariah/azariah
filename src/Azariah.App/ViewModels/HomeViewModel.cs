@@ -155,10 +155,4 @@ public sealed partial class HomeViewModel : ViewModelBase
     private void OpenGame(RobloxProjectViewModel game) => _workspace.OpenProject(game.Folder);
 
     [RelayCommand]
-    private async Task OpenGameInStudio(RobloxProjectViewModel game)
-    {
-        if (game.Project.Latest is { } latest)
-        {
-            await _workspace.OpenPathAsync(latest.Path);
-        }
-    }}
+    private Task OpenGameInStudio(RobloxProjectViewModel game) => _workspace.OpenGameAsync(game.Project);}

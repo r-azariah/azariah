@@ -61,8 +61,7 @@
           <StackPanel Spacing="14">
             <TextBlock Text="{Binding Selected.Title}" FontSize="30" FontWeight="SemiBold" TextWrapping="Wrap" />
             <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="primary" Content="Open in Studio" Command="{Binding OpenLatestCommand}"
-                      IsVisible="{Binding Selected.HasLatest}" />
+              <Button Classes="primary" Content="Open in Studio" Command="{Binding OpenInStudioCommand}" />
               <Button Content="{Binding Selected.SaveText}" Command="{Binding SaveNewVersionCommand}" Padding="14,8" />
               <Button Classes="ghost" Content="Folder" Command="{Binding OpenFolderCommand}" />
               <Button Classes="ghost" Content="Notes" Command="{Binding OpenNotesCommand}" />

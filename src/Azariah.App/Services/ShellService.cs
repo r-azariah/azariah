@@ -12,6 +12,12 @@ public interface IShellService
     /// <summary>Opens a web link (http/https only) in the default browser.</summary>
     void OpenUri(Uri uri);
 
+    /// <summary>
+    /// Starts Roblox Studio on this PC, straight into the published place when both ids are known.
+    /// Returns false when Studio isn't installed.
+    /// </summary>
+    bool OpenRobloxStudio(string? placeId, string? universeId);
+
     /// <summary>Display only. Never used to decide whether a computer is trusted.</summary>
     string MachineDisplayName { get; }
 }
@@ -40,6 +46,55 @@ public sealed class ShellService : IShellService
 
         using var _ = Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
     }
+
+    public bool OpenRobloxStudio(string? placeId, string? universeId)
+    {
+        var studio = FindRobloxStudio();
+        if (studio is null)
+        {
+            return false;
+        }
+
+        var info = new ProcessStartInfo(studio) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(studio)! };
+        if (IsDigits(placeId) && IsDigits(universeId))
+        {
+            // Documented Studio command line: opens the latest published version of the place.
+            info.ArgumentList.Add("--task");
+            info.ArgumentList.Add("EditPlace");
+            info.ArgumentList.Add("--placeId");
+            info.ArgumentList.Add(placeId!);
+            info.ArgumentList.Add("--universeId");
+            info.ArgumentList.Add(universeId!);
+        }
+
+        using var _ = Process.Start(info);
+        return true;
+    }
+
+    /// <summary>Studio installs per user in %LOCALAPPDATA%\Roblox\Versions\&lt;version&gt;; the newest install wins.</summary>
+    private static string? FindRobloxStudio()
+    {
+        var versions = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Roblox", "Versions");
+        try
+        {
+            if (!Directory.Exists(versions))
+            {
+                return null;
+            }
+
+            return Directory.EnumerateDirectories(versions)
+                .Select(dir => Path.Combine(dir, "RobloxStudioBeta.exe"))
+                .Where(File.Exists)
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .FirstOrDefault();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private static bool IsDigits(string? text) => !string.IsNullOrEmpty(text) && text.All(char.IsAsciiDigit);
 
     public void Reveal(string path)
     {

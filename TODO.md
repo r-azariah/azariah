@@ -96,12 +96,19 @@ Read this first when picking up the project in a new session.
 - v0.8.1: Save new version offers the newest place on this PC (`PlaceFinder`: the game's folder, Documents
   depth 3, Desktop 2, Downloads 1, %LOCALAPPDATA%\Roblox\AutoSaves; hidden/system/linked folders skipped),
   with "Pick another file" falling back to a picker filtered to .rbxl/.rbxlx.
+- v0.8.2: the drive's LATEST save is a backup, not always the newest. "Open in Studio" (Roblox page, Home,
+  Ctrl+Space) asks: Open Studio (runs `RobloxStudioBeta.exe --task EditPlace --placeId --universeId`, the
+  documented CLI, when the notes have both ids) or Open backup (the LATEST file). Owner: no more Roblox
+  features after this; next is "cool stuff" (local AI on the host PC's hardware, see Next).
 
 ## Next, in order
 
 0. **Features that do something** (owner, 2026-09-24). Done in v0.8: Roblox projects, Home games, Ctrl+Space.
-   Next candidates: one-button new-PC setup; more command bar actions (new game, open a game's notes);
-   AI in the command bar (Phase 7).
+   No more Roblox features (owner). Proposed next, owner to pick: local AI that runs on the plugged-in
+   PC's hardware (detect GPU/VRAM/RAM, models on the drive, runtime installed with the verified PC copy,
+   Ctrl+Space "ask", screen question on a hotkey, borrow the desktop GPU over LAN); PC mirror/backup of
+   the drive; Transfer pop-up; drive timeline; Vault + passwords + 2FA codes; screenshot hotkey with OCR;
+   quick notes; convert/compress; space cleaner.
 1. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
    three typography directions and asking the owner. Don't build screens before they choose.
 2. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.

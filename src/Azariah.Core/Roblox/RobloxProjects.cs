@@ -22,6 +22,7 @@ public sealed record RobloxProject(
     IReadOnlyList<string> Summary,
     IReadOnlyList<string> NextStep,
     string? PlaceId,
+    string? UniverseId,
     SaveEntry? Latest,
     IReadOnlyList<SaveEntry> OldVersions,
     PassEntry? LastPass,
@@ -91,7 +92,8 @@ public static partial class RobloxProjects
             title,
             IntroLines(notes),
             SectionLines(notes, "next", MaxNextStepLines),
-            PlaceIdFrom(notes),
+            IdFrom(notes, PlaceIdPattern()),
+            IdFrom(notes, UniverseIdPattern()),
             latest,
             oldVersions,
             LastPassFrom(passes),
@@ -188,6 +190,9 @@ public static partial class RobloxProjects
 
     [GeneratedRegex(@"\bplace(?:\s+id)?\s*[:#]?\s*(?<id>\d{6,})", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PlaceIdPattern();
+
+    [GeneratedRegex(@"\buniverse(?:\s+id)?\s*[:#]?\s*(?<id>\d{6,})", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex UniverseIdPattern();
 
     [GeneratedRegex(@"\s*\([^)]*\)\s*$", RegexOptions.CultureInvariant)]
     private static partial Regex TrailingParenthetical();
@@ -338,11 +343,11 @@ public static partial class RobloxProjects
         return lines;
     }
 
-    private static string? PlaceIdFrom(List<string> notes)
+    private static string? IdFrom(List<string> notes, Regex pattern)
     {
         foreach (var line in notes)
         {
-            var match = PlaceIdPattern().Match(line);
+            var match = pattern.Match(line);
             if (match.Success)
             {
                 return match.Groups["id"].Value;

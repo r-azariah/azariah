@@ -25,8 +25,9 @@ public sealed class RobloxProjectsTests : IDisposable
         Assert.Equal(game, project.Folder);
         Assert.Equal("Obby Rush!", project.Title);
         Assert.Equal("107196611281898", project.PlaceId);
+        Assert.Equal("10765819725", project.UniverseId);
         Assert.Equal(new Uri("https://www.roblox.com/games/107196611281898"), project.PlaceUri);
-        Assert.Equal(new[] { "Called Obby in Studio.", "Place ID 107196611281898.", "Checkpoints work." }, project.Summary);
+        Assert.Equal(new[] { "Called Obby in Studio.", "Place ID 107196611281898, universe 10765819725.", "Checkpoints work." }, project.Summary);
         Assert.Equal(new[] { "Add the lava stage." }, project.NextStep);
 
         Assert.NotNull(project.Latest);
@@ -119,7 +120,7 @@ public sealed class RobloxProjectsTests : IDisposable
             # Obby Rush! (Roblox game)
 
             - Called `Obby` in Studio.
-            - Place ID 107196611281898.
+            - Place ID 107196611281898, universe 10765819725.
             - **Checkpoints** work.
 
             ## Next step

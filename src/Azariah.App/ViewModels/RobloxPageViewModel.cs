@@ -164,11 +164,11 @@ public sealed partial class RobloxPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task OpenLatest()
+    private async Task OpenInStudio()
     {
-        if (Selected?.Project.Latest is { } latest)
+        if (Selected is { } project)
         {
-            await _workspace.OpenPathAsync(latest.Path);
+            await _workspace.OpenGameAsync(project.Project);
         }
     }
 

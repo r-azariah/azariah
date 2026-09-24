@@ -44,7 +44,7 @@
                     </StackPanel>
                   </Button>
                   <TextBlock Grid.Column="1" Classes="key" Text="{Binding ListDetail}" VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
-                  <Button Grid.Column="2" Classes="ghost" Content="Open in Studio" IsVisible="{Binding HasLatest}" VerticalAlignment="Center"
+                  <Button Grid.Column="2" Classes="ghost" Content="Open in Studio" VerticalAlignment="Center"
                           Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).OpenGameInStudioCommand}" CommandParameter="{Binding}" />
                 </Grid>
               </DataTemplate>
