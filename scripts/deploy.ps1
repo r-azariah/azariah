@@ -91,7 +91,8 @@ if (Test-Path -LiteralPath $localExe) {
 $argList += @('--root', $Drive)
 
 $psi = New-Object System.Diagnostics.ProcessStartInfo $staged
-$psi.UseShellExecute = $false
+# Shell-execute so the reopened app and watcher don't inherit this script's output handles.
+$psi.UseShellExecute = $true
 $psi.Arguments = ($argList | ForEach-Object { ConvertTo-Arg $_ }) -join ' '
 $helper = [System.Diagnostics.Process]::Start($psi)
 $helper.WaitForExit()

@@ -5,15 +5,16 @@ Read this first when picking up the project in a new session.
 ## Where things stand
 
 - Solution builds with **zero warnings** (warnings are errors) on the .NET 10 SDK.
-- `dotnet test Azariah.sln`: 38 tests pass (35 core, 3 headless UI incl. rendering every page).
+- `dotnet test Azariah.sln`: 42 tests pass (36 core, 6 app incl. rendering every page).
 - `dotnet publish src/Azariah.App -c Release -r win-x64` produces a single portable, trimmed
   `Azariah.exe` (~24 MB). Works when cross-built from Linux.
 - A trimmed linux-x64 build was smoke-tested under Xvfb: setup, navigation, new folder,
   rename (F2), delete to Trash via Enter in the dialog, Settings.
 - v0.1 exe was handed to the user directly (zip), since the Actions workflow only appears
   once it's on the default branch.
-- Not yet verified on real Windows hardware: auto-launch end to end, Explorer drag-in,
-  system clipboard paste, custom title bar. **Test these first on Windows.**
+- Verified on real Windows (laptop, v0.6): tests pass, `scripts/deploy.ps1` installs through
+  `--finish-update`, auto-launch opens AZARIAH on plug-in. Still unverified: Explorer drag-in,
+  system clipboard paste, custom title bar.
 
 ## Done
 
@@ -60,28 +61,42 @@ Read this first when picking up the project in a new session.
 ## Session 4 (v0.5)
 
 - The owner's drive already has a pass system: `<drive>\CLAUDE-START-HERE.md` (index) and
-  `Games\<GAME>\CLAUDE.md` + `PASSES.md` per game. The app now has its own pass at
+  `Roblox\Games\<GAME>\CLAUDE.md` + `PASSES.md` per game. The app has its own pass at
   `<drive>\Projects\AZARIAH\` (CLAUDE.md + PASSES.md) and a row in CLAUDE-START-HERE.md.
-  **When the owner says "pass" about the app: update those two files (hand them over as a zip, since
-  cloud sessions can't write to the USB), commit + push, ship the exe.**
-- Drive layout agreed: `Roblox\` = general Roblox stuff (Scripts, Models, Assets, Images, Docs),
-  `Games\<GAME>\` = game-specific. The Roblox page has Games / General scopes.
+  **When the owner says "pass" about the app: update those two files on the drive, commit + push,
+  ship with `scripts/deploy.ps1`.**
 - The app no longer recreates standard folders on every launch (only at setup or from Settings).
-- Next for Roblox: show each `Games\<GAME>` as a project (CLAUDE.md status, LATEST place,
-  Old Versions, last pass).
+
+## Session 5 (v0.6, laptop, first local session on real Windows)
+
+- Repo now lives on the drive at `<drive>\Projects\AZARIAH\code` so every PC's Claude has it.
+  Git + .NET 10 SDK installed on the laptop via winget; GitHub sign-in saved there.
+- `scripts/deploy.ps1`: tests, builds to `%LOCALAPPDATA%\Azariah\build` (off the USB), stages the exe in
+  `%TEMP%\azariah-update`, closes AZARIAH windows normally, runs `--finish-update` for the drive exe +
+  PC copy, then verifies both by SHA-256. The owner doesn't drop zips anymore.
+- Drive layout changed by the owner: games live in `Roblox\Games\<GAME>\` (`DriveLayout.Games`);
+  the rest of `Roblox\` is general. Roblox page Games scope follows it.
+- Fixed `Prepare_extracts_the_exe_from_a_zip_and_rejects_junk` for Windows (the version-resource check
+  rejects the fake exe there; the test assumed Linux).
+- Plugging the drive in also opens Explorer (Windows AutoPlay "Open folder" on the laptop). Fix is next.
 
 ## Next, in order
 
-0. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
+0. **Features that do something** (owner, 2026-09-24): first, plug-in opens only AZARIAH (the watcher
+   cancels AutoPlay for this drive via `IQueryCancelAutoPlay` in the ROT). Then candidates the owner
+   hasn't ranked: Roblox project pages (status from each game's CLAUDE.md, last pass, LATEST place with
+   Open in Studio, Old Versions, "save new version"), Home = where I left off, Ctrl+Space command bar,
+   one-button new-PC setup.
+1. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
    three typography directions and asking the owner. Don't build screens before they choose.
-1. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.
-2. **Setup Kit v2** (see ROADMAP): installer sidecar manifests + SHA-256 verify + Authenticode
+2. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.
+3. **Setup Kit v2** (see ROADMAP): installer sidecar manifests + SHA-256 verify + Authenticode
    check (`WinVerifyTrust`), Installers page, Skills page with install targets from
    `SetupKit/tools.json`, secret scanner.
-3. **Phase 2 Vault** per SECURITY.md. Pick the Argon2id binding (libsodium-based, maintained),
+4. **Phase 2 Vault** per SECURITY.md. Pick the Argon2id binding (libsodium-based, maintained),
    use .NET `AesGcm`. Write format tests before UI. Wire lock into
    `MainViewModel.OnDisconnected` and `Shutdown` (comments mark the spots).
-4. **Phase 7a**: MCP server exposing drive search / read / open tools, gated by permissions.
+5. **Phase 7a**: MCP server exposing drive search / read / open tools, gated by permissions.
 
 ## Known limitations
 
