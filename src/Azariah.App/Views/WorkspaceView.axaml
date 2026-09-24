@@ -1,16 +1,17 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Azariah.App.ViewModels"
+             xmlns:app="using:Azariah.App"
              x:Class="Azariah.App.Views.WorkspaceView"
              x:DataType="vm:WorkspaceViewModel">
   <Grid ColumnDefinitions="200,*">
     <!-- Sidebar: mark, drive, places. Interim layout until the redesign lands. -->
     <Grid RowDefinitions="Auto,*" Margin="24,24,12,20">
       <StackPanel Spacing="14" Margin="12,0,0,28">
-        <Path Data="{StaticResource AzMark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
-              Width="34" Height="27" HorizontalAlignment="Left" />
+        <Path Data="{x:Static app:Brand.Wordmark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
+              Height="22" HorizontalAlignment="Left" />
         <StackPanel Spacing="2">
-          <TextBlock Text="{Binding DriveName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding DriveName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" IsVisible="{Binding ShowDriveName}" />
           <TextBlock Text="{Binding RootText}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RootText}" />
         </StackPanel>
       </StackPanel>

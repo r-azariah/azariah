@@ -48,6 +48,15 @@ Read this first when picking up the project in a new session.
 - **Auto-launch still unverified on real Windows.** First report: replug did nothing (likely the old
   window never closed). Check with v0.3; if it still fails, read `%LOCALAPPDATA%\Azariah\logs`.
 
+## Session 3b (v0.4)
+
+- Brand: `[A]` = mark/icon, `[AZARIAH]` = wordmark (Montserrat Bold outlines as vector paths +
+  the logo's bracket proportions) in `src/Azariah.App/Brand.cs`. Window title and FileDescription
+  are `[AZARIAH]`; ProductName stays `Azariah` (update validation relies on it).
+- Launch animation lengthened to ~2.6 s: [A] glitch in, glitch swap to [AZARIAH], brackets open.
+  Clock starts on the first rendered tick.
+- Old icon showing after an update = Windows icon cache (`ie4uinit.exe -show` or restart).
+
 ## Next, in order
 
 0. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the

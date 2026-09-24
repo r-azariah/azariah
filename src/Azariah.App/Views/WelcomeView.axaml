@@ -1,14 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Azariah.App.ViewModels"
+             xmlns:app="using:Azariah.App"
              xmlns:drive="using:Azariah.Core.Drive"
              x:Class="Azariah.App.Views.WelcomeView"
              x:DataType="vm:WelcomeViewModel">
   <Grid>
     <Border Width="520" Padding="36" HorizontalAlignment="Center" VerticalAlignment="Center">
       <StackPanel Spacing="16">
-        <Path Data="{StaticResource AzMark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
-              Width="52" Height="41" HorizontalAlignment="Left" Margin="0,0,0,12" />
+        <Path Data="{x:Static app:Brand.Wordmark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
+              Height="34" HorizontalAlignment="Left" Margin="0,0,0,16" />
         <TextBlock Classes="h1" Text="{Binding Headline}" />
         <TextBlock Classes="muted" Text="{Binding Explanation}" TextWrapping="Wrap" />
 

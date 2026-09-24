@@ -43,7 +43,7 @@ public sealed partial class MainViewModel : ViewModelBase
     public partial ViewModelBase? Current { get; set; }
 
     [ObservableProperty]
-    public partial string WindowTitle { get; set; } = "AZARIAH";
+    public partial string WindowTitle { get; set; } = Brand.Name;
 
     public WorkspaceViewModel? Workspace => Current as WorkspaceViewModel;
 
@@ -65,7 +65,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
 
         Current = workspace;
-        WindowTitle = marker.DisplayName;
+        WindowTitle = Brand.Name;
         session.Log.Info("Workspace opened.");
         StartMonitor(root, marker.DriveId);
     }

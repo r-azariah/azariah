@@ -59,6 +59,9 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
 
     public string DriveName => Session.Marker.DisplayName;
 
+    /// <summary>The wordmark already says AZARIAH; only show the drive name when it's something else.</summary>
+    public bool ShowDriveName => !string.Equals(DriveName.Trim('[', ']', ' '), "AZARIAH", StringComparison.OrdinalIgnoreCase);
+
     public string RootText => Session.Layout.Root;
 
     partial void OnSelectedNavChanged(NavItem? value)
@@ -109,7 +112,11 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         }
     }
 
-    public void NotifyDriveRenamed() => OnPropertyChanged(nameof(DriveName));
+    public void NotifyDriveRenamed()
+    {
+        OnPropertyChanged(nameof(DriveName));
+        OnPropertyChanged(nameof(ShowDriveName));
+    }
 
     /// <summary>True if the path is somewhere the Files browser can show.</summary>
     public bool CanShow(string path) => Session.Layout.Contains(path) && !Session.Layout.IsProtected(path);

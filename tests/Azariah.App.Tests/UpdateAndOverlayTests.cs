@@ -63,7 +63,7 @@ public class UpdateAndOverlayTests
         var boot = window.FindControl<BootOverlay>("Boot")!;
         var shots = Environment.GetEnvironmentVariable("AZARIAH_SCREENSHOTS");
 
-        foreach (var (name, open, t) in new[] { ("open-0250", true, 250.0), ("open-0600", true, 600.0), ("open-0850", true, 850.0), ("open-1000", true, 1000.0), ("close-0300", false, 300.0), ("close-0550", false, 550.0), ("close-1100", false, 1100.0) })
+        foreach (var (name, open, t) in new[] { ("open-0400", true, 400.0), ("open-0900", true, 900.0), ("open-1400", true, 1400.0), ("open-1900", true, 1900.0), ("open-2300", true, 2300.0), ("close-0600", false, 600.0), ("close-1200", false, 1200.0) })
         {
             boot.RenderAt(open, t, "Disconnected");
             Dispatcher.UIThread.RunJobs();
