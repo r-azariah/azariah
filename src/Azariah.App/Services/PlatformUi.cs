@@ -20,14 +20,20 @@ public sealed class PlatformUi
         return result.Count > 0 ? result[0].TryGetLocalPath() : null;
     }
 
-    public async Task<IReadOnlyList<string>> PickFilesAsync(string title)
+    public async Task<IReadOnlyList<string>> PickFilesAsync(string title, FilePickerFileType? only = null)
     {
         if (TopLevel?.StorageProvider is not { CanOpen: true } provider)
         {
             return [];
         }
 
-        var result = await provider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = title, AllowMultiple = true });
+        var options = new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = only is null,
+            FileTypeFilter = only is null ? null : [only],
+        };
+        var result = await provider.OpenFilePickerAsync(options);
         return result.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
     }
 

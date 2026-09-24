@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using Avalonia.Platform.Storage;
 using Azariah.App.Services;
+using Azariah.App.ViewModels.Dialogs;
 using Azariah.Core.Drive;
 using Azariah.Core.Files;
 using Azariah.Core.Roblox;
@@ -59,6 +61,8 @@ public sealed class RobloxProjectViewModel(RobloxProject project)
 /// </summary>
 public sealed partial class RobloxPageViewModel : ViewModelBase
 {
+    private static readonly FilePickerFileType PlaceFiles = new("Roblox place") { Patterns = ["*.rbxl", "*.rbxlx"] };
+
     private readonly WorkspaceSession _s;
     private readonly WorkspaceViewModel _workspace;
 
@@ -176,13 +180,11 @@ public sealed partial class RobloxPageViewModel : ViewModelBase
             return;
         }
 
-        var files = await _s.Ui.PickFilesAsync($"New save for {project.Title}");
-        if (files.Count == 0)
+        var picked = await ChooseSaveAsync(project);
+        if (picked is null)
         {
             return;
         }
-
-        var picked = files[0];
 
         try
         {
@@ -286,6 +288,47 @@ public sealed partial class RobloxPageViewModel : ViewModelBase
         {
             SetStatus(OperationReport.Describe(ex), error: true);
         }
+    }
+
+    /// <summary>Offers the newest place saved on this PC; otherwise (or if asked) a file picker.</summary>
+    private async Task<string?> ChooseSaveAsync(RobloxProjectViewModel project)
+    {
+        var latest = project.Project.Latest?.Path;
+        var newest = await Task.Run(() => PlaceFinder.FindNewest(
+            PlaceFinder.DefaultRoots(project.Folder),
+            path => latest is not null && PathGuard.AreSame(path, latest)));
+        if (newest is not null)
+        {
+            var choice = await _s.Dialogs.ChooseAsync(
+                $"New save for {project.Title}",
+                $"{newest.Name}  ·  {Where(newest.FullPath, project.Folder)}  ·  saved {Format.Ago(newest.ModifiedUtc)}",
+                new ChoiceOption("pick", "Pick another file"),
+                new ChoiceOption("use", "Use this file", IsPrimary: true));
+            if (choice is null)
+            {
+                return null;
+            }
+
+            if (choice == "use")
+            {
+                return newest.FullPath;
+            }
+        }
+
+        var files = await _s.Ui.PickFilesAsync($"New save for {project.Title}", PlaceFiles);
+        return files.Count > 0 ? files[0] : null;
+    }
+
+    private static string Where(string file, string projectFolder)
+    {
+        var folder = Path.GetDirectoryName(file) ?? file;
+        if (PathGuard.AreSame(folder, projectFolder))
+        {
+            return "in this game's folder";
+        }
+
+        var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return profile.Length > 0 && PathGuard.IsInsideOrEqual(profile, folder) ? Path.GetRelativePath(profile, folder) : folder;
     }
 
     private void SetStatus(string message, bool error)

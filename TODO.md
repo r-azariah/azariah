@@ -93,12 +93,15 @@ Read this first when picking up the project in a new session.
   - Home lists games first (most recently changed with content), then Recent.
   - `IShellService.OpenUri` (http/https only); `WorkspaceViewModel.OpenPathAsync` is the one place that
     opens paths (programs ask first).
+- v0.8.1: Save new version offers the newest place on this PC (`PlaceFinder`: the game's folder, Documents
+  depth 3, Desktop 2, Downloads 1, %LOCALAPPDATA%\Roblox\AutoSaves; hidden/system/linked folders skipped),
+  with "Pick another file" falling back to a picker filtered to .rbxl/.rbxlx.
 
 ## Next, in order
 
 0. **Features that do something** (owner, 2026-09-24). Done in v0.8: Roblox projects, Home games, Ctrl+Space.
-   Next candidates: one-button new-PC setup; "Save new version" offering the newest .rbxl found on this PC;
-   more command bar actions (new game, open a game's notes); AI in the command bar (Phase 7).
+   Next candidates: one-button new-PC setup; more command bar actions (new game, open a game's notes);
+   AI in the command bar (Phase 7).
 1. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
    three typography directions and asking the owner. Don't build screens before they choose.
 2. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.
