@@ -49,7 +49,7 @@ public sealed partial class WelcomeViewModel : ViewModelBase
     public string Headline => NeedsSetup ? "Set up this drive" : HasCandidates ? "Pick a drive" : "Plug in your drive";
 
     public string Explanation => NeedsSetup
-        ? "Creates Files, Roblox, Games, Transfer, Public, SetupKit and .azariah here. Existing files stay as they are."
+        ? "Creates Files, Roblox, Transfer, Public, SetupKit and .azariah here. Existing files stay as they are."
         : HasCandidates
             ? "More than one AZARIAH drive is connected."
             : "Or choose a drive or folder.";

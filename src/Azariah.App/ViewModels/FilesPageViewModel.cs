@@ -89,7 +89,7 @@ public sealed partial class FilesPageViewModel : ViewModelBase
     [RelayCommand]
     private void OpenSection(SectionLink link) => Browser.NavigateTo(link.Path);
 
-    /// <summary>Games\ holds one folder per game; Roblox\ holds general stuff not tied to a game.</summary>
+    /// <summary>Roblox\Games\ holds one folder per game; the rest of Roblox\ is general stuff not tied to a game.</summary>
     public static FilesPageViewModel Roblox(WorkspaceSession s) =>
         new("Roblox",
         [

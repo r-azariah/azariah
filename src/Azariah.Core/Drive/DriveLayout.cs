@@ -14,8 +14,8 @@ public sealed class DriveLayout
     public const string FilesFolderName = "Files";
     public const string RobloxFolderName = "Roblox";
 
-    /// <summary>One folder per game (<c>Games\&lt;GAME&gt;</c>, with its CLAUDE.md/PASSES.md passes).
-    /// <c>Roblox\</c> is for general Roblox stuff that isn't tied to one game.</summary>
+    /// <summary>One folder per game (<c>Roblox\Games\&lt;GAME&gt;</c>, with its CLAUDE.md/PASSES.md passes).
+    /// The rest of <c>Roblox\</c> is for general Roblox stuff that isn't tied to one game.</summary>
     public const string GamesFolderName = "Games";
     public const string TransferFolderName = "Transfer";
     public const string PublicFolderName = "Public";
@@ -42,7 +42,7 @@ public sealed class DriveLayout
 
     public string Files => Path.Combine(Root, FilesFolderName);
     public string Roblox => Path.Combine(Root, RobloxFolderName);
-    public string Games => Path.Combine(Root, GamesFolderName);
+    public string Games => Path.Combine(Roblox, GamesFolderName);
     public string Transfer => Path.Combine(Root, TransferFolderName);
     public string Public => Path.Combine(Root, PublicFolderName);
     public string SetupKit => Path.Combine(Root, SetupKitFolderName);

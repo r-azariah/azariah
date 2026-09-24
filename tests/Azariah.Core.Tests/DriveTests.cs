@@ -25,7 +25,8 @@ public class DriveTests
     public void Initialize_keeps_existing_games_and_adds_general_roblox_folders()
     {
         using var drive = new TempDrive(initialize: false);
-        var game = Directory.CreateDirectory(Path.Combine(drive.Root, "Games", "Steal Animals Eggs")).FullName;
+        Assert.Equal(Path.Combine(drive.Layout.Roblox, "Games"), drive.Layout.Games);
+        var game = Directory.CreateDirectory(Path.Combine(drive.Layout.Games, "Steal Animals Eggs")).FullName;
         File.WriteAllText(Path.Combine(game, "CLAUDE.md"), "state");
         new DriveInitializer(new FakeVolumes()).Initialize(drive.Root, "AZARIAH");
         Assert.Equal("state", File.ReadAllText(Path.Combine(game, "CLAUDE.md")));

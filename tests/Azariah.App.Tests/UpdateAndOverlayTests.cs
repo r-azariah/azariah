@@ -38,9 +38,18 @@ public class UpdateAndOverlayTests
             await entry.WriteAsync(fakeExe);
         }
 
-        var package = await UpdateManager.PrepareAsync(zipPath);
-        Assert.True(File.Exists(package.ExePath));
-        Assert.Equal(fakeExe.Length, new FileInfo(package.ExePath).Length);
+        if (OperatingSystem.IsWindows())
+        {
+            // Windows also checks the version resource, so a bare MZ file is rejected after extraction.
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => UpdateManager.PrepareAsync(zipPath));
+            Assert.Contains("isn't an AZARIAH build", ex.Message, StringComparison.Ordinal);
+        }
+        else
+        {
+            var package = await UpdateManager.PrepareAsync(zipPath);
+            Assert.True(File.Exists(package.ExePath));
+            Assert.Equal(fakeExe.Length, new FileInfo(package.ExePath).Length);
+        }
 
         var junk = Path.Combine(dir, "notes.txt");
         await File.WriteAllTextAsync(junk, "hi");
