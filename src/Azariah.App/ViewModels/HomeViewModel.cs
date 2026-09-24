@@ -155,4 +155,7 @@ public sealed partial class HomeViewModel : ViewModelBase
     private void OpenGame(RobloxProjectViewModel game) => _workspace.OpenProject(game.Folder);
 
     [RelayCommand]
+    private void OpenSpace() => _workspace.OpenSpace();
+
+    [RelayCommand]
     private Task OpenGameInStudio(RobloxProjectViewModel game) => _workspace.OpenGameAsync(game.Project);}

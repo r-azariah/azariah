@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.NotesPageView"
+             x:DataType="vm:NotesPageViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBox.bare">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="2,4" />
+    </Style>
+    <Style Selector="TextBox.bare:focus /template/ Border#PART_BorderElement">
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TextBox.bare:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="TextBox.title">
+      <Setter Property="FontSize" Value="26" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBox.editor">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="LineHeight" Value="22" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Padding" Value="6,1" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*" Margin="24,24,28,20">
+    <StackPanel Orientation="Horizontal" Spacing="16">
+      <TextBlock Classes="h1" Text="Notes" />
+      <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Bottom" Margin="0,0,0,2">
+        <Button Classes="ghost" Content="New note" Command="{Binding NewNoteCommand}" />
+        <Button Classes="ghost" Content="Today" Command="{Binding TodayCommand}" />
+        <Button Classes="ghost" Content="Folder" Command="{Binding OpenFolderCommand}" />
+      </StackPanel>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Margin="0,18,0,0" ColumnDefinitions="260,36,*">
+      <Grid RowDefinitions="Auto,*">
+        <TextBox Text="{Binding Search}" Watermark="Search notes" Margin="0,0,0,10" />
+        <ListBox Grid.Row="1" Classes="nav" ItemsSource="{Binding Notes}" SelectedItem="{Binding Selected}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:NoteItemViewModel">
+              <StackPanel Spacing="1">
+                <TextBlock Text="{Binding Title}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Preview}" IsVisible="{Binding HasPreview}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Detail}" Classes="faint" FontSize="11" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+
+      <StackPanel Grid.Column="2" Spacing="12" IsVisible="{Binding !HasSelection}">
+        <TextBlock Classes="muted" Text="No notes yet." />
+        <Button Content="New note" Command="{Binding NewNoteCommand}" HorizontalAlignment="Left" Padding="14,8" />
+      </StackPanel>
+
+      <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*" IsVisible="{Binding HasSelection}">
+        <TextBox x:Name="TitleBox" Classes="bare title" Text="{Binding Title}" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="2,0,0,12">
+          <TextBlock Classes="faint" FontSize="12" Text="{Binding Selected.Detail}" VerticalAlignment="Center" />
+          <Button Classes="ghost small" Content="Delete" Command="{Binding DeleteNoteCommand}" />
+          <TextBlock Classes="danger" FontSize="12" Text="{Binding Status}" IsVisible="{Binding HasStatus}" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBox x:Name="Editor" Grid.Row="2" Classes="bare editor" Text="{Binding Text}"
+                 AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                 Watermark="Write something" />
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

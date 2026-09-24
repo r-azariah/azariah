@@ -47,7 +47,7 @@ public sealed class RobloxProjectViewModel(RobloxProject project)
     public string OldVersionsTitle => $"Old versions  {OldVersions.Count}";
 
     /// <summary>The short line under the name in lists.</summary>
-    public string ListDetail => Project.Latest is { } l ? $"Saved {Day(l)}" : Project.LastPass is { } p ? p.Heading : "Empty";
+    public string ListDetail => Project.Latest is { } l ? $"Saved {Day(l)}" : "No save yet";
 
     private static string Day(SaveEntry save) =>
         save.Date is { } d ? Format.Day(d) : Format.Ago(save.ModifiedUtc);

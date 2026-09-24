@@ -15,6 +15,7 @@ public enum CommandKind
     Folder,
     Script,
     Search,
+    Note,
 }
 
 public sealed record CommandItem(string Title, string? Detail, CommandKind Kind, Func<Task> Run, bool KeepOpen = false)
@@ -29,6 +30,7 @@ public sealed record CommandItem(string Title, string? Detail, CommandKind Kind,
         CommandKind.Folder => "Folder",
         CommandKind.Script => "Script",
         CommandKind.Search => "Search",
+        CommandKind.Note => "Note",
         _ => "File",
     };
 }
@@ -141,6 +143,11 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
         Note = null;
 
         var items = new List<CommandItem>();
+        if (CaptureText(query) is { } capture)
+        {
+            items.Add(new CommandItem("Add to today's note", capture, CommandKind.Note, () => CaptureAsync(capture), KeepOpen: true));
+        }
+
         AddGames(items, query);
         AddPages(items, query);
         if (query.Length == 0)
@@ -149,6 +156,7 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
         }
         else if (query.Length >= 2)
         {
+            AddNotes(items, query);
             items.Add(new CommandItem(
                 $"Search inside scripts for “{query}”",
                 "Every Luau script on the drive",
@@ -268,6 +276,84 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
                 return Task.CompletedTask;
             }));
         }
+
+        if (Matches("Space", query) || Matches("Storage", query))
+        {
+            items.Add(new CommandItem("Space", "What's using the drive", CommandKind.Page, () =>
+            {
+                workspace.OpenSpace();
+                return Task.CompletedTask;
+            }));
+        }
+
+        if (Matches("New note", query))
+        {
+            items.Add(new CommandItem("New note", null, CommandKind.Note, () =>
+            {
+                workspace.Navigate("notes");
+                workspace.Notes.NewNote();
+                return Task.CompletedTask;
+            }));
+        }
+
+        if (Matches("Today's note", query) || Matches("Daily note", query))
+        {
+            items.Add(new CommandItem("Today's note", null, CommandKind.Note, () =>
+            {
+                workspace.Navigate("notes");
+                workspace.Notes.Today();
+                return Task.CompletedTask;
+            }));
+        }
+    }
+
+    private void AddNotes(List<CommandItem> items, string query)
+    {
+        if (CaptureText(query) is not null)
+        {
+            return;
+        }
+
+        foreach (var note in workspace.Session.Notes.Search(query).Take(5))
+        {
+            var path = note.Path;
+            items.Add(new CommandItem(note.Title, note.Preview.Length > 0 ? note.Preview : note.Folder, CommandKind.Note, () =>
+            {
+                workspace.OpenNote(path);
+                return Task.CompletedTask;
+            }));
+        }
+    }
+
+    private Task CaptureAsync(string text)
+    {
+        try
+        {
+            workspace.CaptureNote(text);
+            _updatingQuery = true;
+            Query = string.Empty;
+            _updatingQuery = false;
+            Pending = UpdateAsync();
+            Note = "Added to today's note.";
+        }
+        catch (Exception ex)
+        {
+            Note = $"Couldn't add it: {ex.Message}";
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>"note: call Sam" or "note call Sam" captures "call Sam".</summary>
+    private static string? CaptureText(string query)
+    {
+        if (query.Length > 5 && query.StartsWith("note", StringComparison.OrdinalIgnoreCase) && query[4] is (':' or ' '))
+        {
+            var text = query[5..].Trim();
+            return text.Length > 0 ? text : null;
+        }
+
+        return null;
     }
 
     private void AddRecent(List<CommandItem> items)

@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.SpacePageView"
+             x:DataType="vm:SpacePageViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.key">
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBlock.val">
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.row">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0,5" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.row:pointerover TextBlock.name">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+    <Style Selector="Button.small">
+      <Setter Property="Padding" Value="8,2" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="Grid.hoverrow:pointerover Button.small, Button.small:focus-within">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Spacing="28" Margin="24,24,40,32" MaxWidth="1240" HorizontalAlignment="Left">
+      <StackPanel Spacing="10">
+        <StackPanel Orientation="Horizontal" Spacing="16">
+          <TextBlock Classes="h1" Text="Space" />
+          <Button Classes="ghost" Content="Rescan" Command="{Binding RescanCommand}" VerticalAlignment="Bottom" IsEnabled="{Binding !IsScanning}" />
+        </StackPanel>
+        <TextBlock Classes="val" Text="{Binding UsageText}" />
+        <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="3" CornerRadius="0" Width="560" HorizontalAlignment="Left" />
+        <TextBlock Classes="key" Text="{Binding ScanText}" />
+        <TextBlock Classes="danger" FontSize="13" Text="{Binding Status}" IsVisible="{Binding HasStatus}" />
+      </StackPanel>
+
+      <Grid ColumnDefinitions="380,56,*">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="key" Text="Folders" Margin="0,0,0,6" />
+          <ItemsControl ItemsSource="{Binding Folders}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:SpaceFolderItem">
+                <Button Classes="row" Command="{Binding $parent[UserControl].((vm:SpacePageViewModel)DataContext).OpenFolderCommand}" CommandParameter="{Binding}">
+                  <StackPanel Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto,90">
+                      <TextBlock Classes="val name" Text="{Binding Name}" />
+                      <TextBlock Grid.Column="1" Classes="key" Text="{Binding CountText}" />
+                      <TextBlock Grid.Column="2" Classes="val" Text="{Binding SizeText}" HorizontalAlignment="Right" />
+                    </Grid>
+                    <ProgressBar Value="{Binding Percent}" Maximum="100" Height="2" CornerRadius="0" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+            <Button Classes="row" Command="{Binding OpenTrashCommand}" HorizontalAlignment="Left">
+              <TextBlock Classes="val name" Text="Trash" />
+            </Button>
+            <TextBlock Grid.Column="1" Classes="key" Text="{Binding TrashText}" VerticalAlignment="Center" />
+          </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Spacing="2">
+          <StackPanel Spacing="2" IsVisible="{Binding HasDuplicates}" Margin="0,0,0,28">
+            <TextBlock Classes="key" Text="{Binding DuplicatesTitle}" Margin="0,0,0,6" />
+            <ItemsControl ItemsSource="{Binding Duplicates}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:DuplicateItem">
+                  <Grid Classes="hoverrow" ColumnDefinitions="*,80,90,Auto" Margin="0,4" Background="Transparent">
+                    <StackPanel Spacing="1">
+                      <TextBlock Classes="val" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="key" FontSize="12" Text="{Binding LocationsText}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Classes="key" Text="{Binding CopiesText}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                    <TextBlock Grid.Column="2" Classes="val" Text="{Binding WastedText}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                    <Button Grid.Column="3" Classes="ghost small" Content="Keep one" VerticalAlignment="Center" Margin="12,0,0,0"
+                            Command="{Binding $parent[UserControl].((vm:SpacePageViewModel)DataContext).KeepOneCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock Classes="key" Text="Biggest files" Margin="0,0,0,6" />
+          <ItemsControl ItemsSource="{Binding BiggestFiles}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:SpaceFileItem">
+                <Grid Classes="hoverrow" ColumnDefinitions="*,90,Auto" Background="Transparent">
+                  <Button Classes="row" Command="{Binding $parent[UserControl].((vm:SpacePageViewModel)DataContext).ShowFileCommand}" CommandParameter="{Binding}">
+                    <StackPanel Spacing="1">
+                      <TextBlock Classes="val name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="key" FontSize="12" Text="{Binding LocationText}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Button>
+                  <TextBlock Grid.Column="1" Classes="val" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Classes="ghost small" Content="Trash" VerticalAlignment="Center" Margin="12,0,0,0"
+                          Command="{Binding $parent[UserControl].((vm:SpacePageViewModel)DataContext).TrashFileCommand}" CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Grid>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

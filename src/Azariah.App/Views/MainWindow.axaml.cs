@@ -30,6 +30,7 @@ public partial class MainWindow : Window
         }
 
         Activate();
+        ForegroundWindow.Force(this);
         Topmost = true;
         Topmost = false;
     }

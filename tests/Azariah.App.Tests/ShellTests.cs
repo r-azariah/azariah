@@ -69,6 +69,25 @@ public class ShellTests
             SavePng(bar!, Path.Combine(shots, "command.png"));
         }
 
+        // Space: reached from Home and Ctrl+Space, scans in the background.
+        workspace.CommandBar.Close();
+        workspace.OpenSpace();
+        for (var i = 0; i < 60 && workspace.Space!.IsScanning; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(50);
+        }
+
+        Dispatcher.UIThread.RunJobs();
+        Assert.NotEmpty(workspace.Space!.Folders);
+        Assert.Single(workspace.Space.Duplicates);
+        var space = window.CaptureRenderedFrame();
+        Assert.NotNull(space);
+        if (!string.IsNullOrEmpty(shots))
+        {
+            SavePng(space!, Path.Combine(shots, "space.png"));
+        }
+
         window.Close();
     }
 

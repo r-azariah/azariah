@@ -37,8 +37,17 @@ public partial class App : Application
             if (animate)
             {
                 window.PrepareOpenAnimation();
-                window.Opened += (_, _) => _ = window.PlayOpenAnimationAsync();
             }
+
+            window.Opened += (_, _) =>
+            {
+                // Started by the watcher on plug-in: come to the front first, so the animation is seen.
+                ForegroundWindow.Force(window);
+                if (animate)
+                {
+                    _ = window.PlayOpenAnimationAsync();
+                }
+            };
 
             context.Instance?.Listen(() => Dispatcher.UIThread.Invoke(window.BringToFront));
             desktop.MainWindow = window;

@@ -33,6 +33,7 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
 
         Files = new FilesPageViewModel(session, "Files", layout.Root, "Drive");
         Roblox = new RobloxPageViewModel(session, this);
+        Notes = new NotesPageViewModel(session, this);
         CommandBar = new CommandBarViewModel(this);
 
         // Interim IA: only places that exist and do something. Vault/Passwords return when built;
@@ -41,6 +42,7 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         [
             new("home", "Home", MaterialIconKind.HomeVariantOutline, () => new HomeViewModel(session, this)),
             new("files", "Files", MaterialIconKind.FolderOutline, () => Files),
+            new("notes", "Notes", MaterialIconKind.NoteTextOutline, () => Notes),
             new("roblox", "Roblox", MaterialIconKind.CubeOutline, () => Roblox),
             new("setupkit", "Setup", MaterialIconKind.ToolboxOutline, () => FilesPageViewModel.SetupKit(session)),
             new("settings", "Settings", MaterialIconKind.CogOutline, () => new SettingsViewModel(session, this)),
@@ -54,6 +56,10 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     public FilesPageViewModel Files { get; }
 
     public RobloxPageViewModel Roblox { get; }
+
+    public NotesPageViewModel Notes { get; }
+
+    public SpacePageViewModel? Space { get; private set; }
 
     public CommandBarViewModel CommandBar { get; }
 
@@ -74,6 +80,7 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
 
     partial void OnSelectedNavChanged(NavItem? value)
     {
+        Notes.Flush();
         if (value is not null)
         {
             CurrentPage = value.Page;
@@ -95,6 +102,32 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     {
         Navigate("files");
         Files.Browser.NavigateTo(folder);
+    }
+
+    /// <summary>Shows one note on the Notes page.</summary>
+    public void OpenNote(string path)
+    {
+        Navigate("notes");
+        Notes.Select(path);
+    }
+
+    /// <summary>Where the drive's space goes. Not a sidebar place: reached from Home and Ctrl+Space.</summary>
+    public void OpenSpace()
+    {
+        Notes.Flush();
+        SelectedNav = null;
+        Space ??= new SpacePageViewModel(Session, this);
+        CurrentPage = Space;
+        Space.Rescan();
+    }
+
+    /// <summary>Quick capture from Ctrl+Space: a timestamped line in today's daily note.</summary>
+    public string CaptureNote(string text)
+    {
+        Notes.Flush();
+        var path = Session.Notes.AppendToDaily(text, DateTime.Now);
+        Notes.Refresh();
+        return path;
     }
 
     /// <summary>Shows one game on the Roblox page.</summary>
@@ -205,6 +238,9 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
                 break;
             case RobloxPageViewModel roblox:
                 roblox.Refresh();
+                break;
+            case NotesPageViewModel notes:
+                notes.Refresh();
                 break;
             case SettingsViewModel settings:
                 _ = settings.RefreshAsync();

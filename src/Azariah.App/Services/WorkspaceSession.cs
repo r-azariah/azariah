@@ -3,6 +3,7 @@ using Azariah.Core.Diagnostics;
 using Azariah.Core.Drive;
 using Azariah.Core.Files;
 using Azariah.Core.Launcher;
+using Azariah.Core.Notes;
 using Azariah.Core.Settings;
 
 namespace Azariah.App.Services;
@@ -32,6 +33,7 @@ public sealed class WorkspaceSession
         Trash = new TrashService(layout, Log);
         Files = new FileOperationService(layout, Trash, Log);
         Search = new FileSearchService(layout);
+        Notes = new NotesService(layout, Files);
         Recent = new RecentFilesStore(layout);
         SettingsStore = new SettingsStore(layout);
         Settings = SettingsStore.Load();
@@ -49,6 +51,7 @@ public sealed class WorkspaceSession
     public TrashService Trash { get; }
     public FileOperationService Files { get; }
     public FileSearchService Search { get; }
+    public NotesService Notes { get; }
     public RecentFilesStore Recent { get; }
     public SettingsStore SettingsStore { get; }
     public AppSettings Settings { get; private set; }

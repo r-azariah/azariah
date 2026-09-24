@@ -100,6 +100,19 @@ Read this first when picking up the project in a new session.
   Ctrl+Space) asks: Open Studio (runs `RobloxStudioBeta.exe --task EditPlace --placeId --universeId`, the
   documented CLI, when the notes have both ids) or Open backup (the LATEST file). Owner: no more Roblox
   features after this; next is "cool stuff" (local AI on the host PC's hardware, see Next).
+- v0.9, everyday features:
+  - Notes (nav): `Core/Notes/NotesService`, Markdown in `<drive>\Notes` laid out like Obsidian (file name =
+    title, `Daily\yyyy-MM-dd.md`, dot folders like `.obsidian` ignored). Autosave 400 ms after typing and on
+    note/page switch; rename from the title; Delete goes to Trash. The owner wants the AI to read/edit these
+    later "like Obsidian": build AI note tools on NotesService (List/Search/Read/Write/AppendToDaily).
+  - Ctrl+Space: "note: text" appends "- HH:mm text" to today's daily note (bar stays open, says so);
+    notes are searchable; New note, Today's note, Space commands.
+  - Space (Home > Space, Ctrl+Space): `Core/Space/SpaceScanner` size per top-level folder, biggest files,
+    duplicates (same size, then SHA-256; files >= 64 KB), Trash size. Trash / Keep one move to Trash.
+  - Plug-in focus fix: `Platform/ForegroundWindow` joins the foreground window's input queue for a moment
+    and raises AZARIAH before the open animation (the watcher-launched window used to open behind).
+  - Owner asked about wavy window edges instead of the Windows title bar: possible (custom chrome /
+    transparent shaped window; loses the snap-layout flyout on maximize). Show 2-3 renders, let them pick.
 
 ## Next, in order
 

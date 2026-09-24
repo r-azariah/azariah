@@ -77,7 +77,12 @@
 
       <StackPanel Grid.Column="2" Spacing="28">
         <StackPanel Spacing="8">
-          <TextBlock Classes="h3" Text="{Binding DriveName}" />
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="h3" Text="{Binding DriveName}" />
+            <Button Grid.Column="1" Classes="row" Padding="0" Command="{Binding OpenSpaceCommand}">
+              <TextBlock Classes="key name" Text="Space" />
+            </Button>
+          </Grid>
           <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="3" CornerRadius="0" />
           <Grid ColumnDefinitions="96,*" RowDefinitions="Auto,Auto,Auto" >
             <TextBlock Classes="key" Text="Used" />
