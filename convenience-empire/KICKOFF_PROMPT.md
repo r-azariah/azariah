@@ -28,6 +28,7 @@ Before building anything:
 - Make sure we're working in a copy, not the live TCG game. If this is the original TCG place, stop and tell me so I can duplicate it. Never delete or edit TCG stuff in the original.
 - Look through Workspace, ServerScriptService, ReplicatedStorage, ServerStorage, StarterGui and StarterPlayer and list what's there.
 - Figure out exactly how the TCG plot system works: how many plots, how a player gets assigned one on join, how their stuff spawns onto it, how it's cleaned up when they leave, and how it saves. We're reusing this for the 6-player setup.
+- Break down the TCG NPC system in detail too (see the NPCs section below). That's the part we worked hardest on, so it gets its own writeup in the audit.
 - Sort everything into three buckets:
   - **Reuse as-is:** map, terrain, lighting, roads, general buildings and props, the plot system.
   - **Adapt/reskin:** shelves, register, customer NPCs, money, save system, UI.
@@ -50,7 +51,7 @@ Build these in order and playtest after each one:
 2. **City clock and store hours.** One shared day/night clock for the whole server, so all stores open and close together and lighting/streetlights change with it. Each store has hours (start around 8am to 6pm game time). The door sign flips between Open and Closed, and customers only come while open. Put day length and hours in a Config module. Start around 10 real minutes per game day, with a short closed stretch.
 3. **Deliveries.** The player orders stock from a simple UI. Cost comes out when they order. Boxes show up at their delivery zone after a short delay.
 4. **Stocking.** The player picks up a box, carries it and fills a matching shelf slot. Shelves visibly show how full they are.
-5. **Customers.** Each store spawns its own customers from the street near its plot, so players can't steal each other's customers. NPCs walk in, browse, grab items from stocked shelves and line up at the register. If what they want is out of stock (or overpriced, once pricing exists) they leave annoyed.
+5. **Customers.** Built on the NPC system ported from the TCG game (see the NPCs section). Each store spawns its own customers from the street near its plot, so players can't steal each other's customers. NPCs walk in, browse, grab items from stocked shelves and line up at the register. If what they want is out of stock (or overpriced, once pricing exists) they leave annoyed.
 6. **Register.** The player scans items and takes payment. Cash goes up. Make it quick and satisfying with sounds and a small cash popup.
 7. **Pricing.** The player can set prices. Higher price means more profit per item, but more customers walk.
 8. **End of day.** At closing time, show a summary: revenue, costs, wages, profit, customers lost, items spoiled.
@@ -58,11 +59,27 @@ Build these in order and playtest after each one:
 
 ### Step 4: First hires
 - A hire menu with two roles: **Cashier** and **Stocker**. The player picks which one to hire first. Each costs an upfront fee plus a daily wage paid at close.
+- Staff use the same NPC base as customers, just with a different behavior module.
 - The cashier NPC stands at the register and checks out customers, a bit slower than a player at level 1.
 - The stocker NPC takes boxes from the stockroom and fills the emptiest matching shelves.
 - Staff have a level the player can upgrade for speed.
 - If the player walks up to the register while the cashier is there, the player takes over and the cashier goes idle or helps stock.
 - If the player can't cover wages at close, warn them clearly. Money never goes negative without the player knowing why.
+
+## NPCs: carry over what we learned in the TCG game
+The TCG game already has working shop NPCs, and we learned a lot getting them right. Don't rebuild them from scratch.
+- In the audit, find the TCG NPC system and break it down for me: how NPCs spawn, how they path to shelves and the register, how they pick what to buy, how the checkout line works, and how they despawn. Call out every fix or workaround in the code (stuck checks, retry loops, comments explaining a bug). Those workarounds are the lessons, so they come with us.
+- Port that system and adapt it instead of rewriting it. Browsing card packs becomes browsing shelves, coolers and hot food. The TCG checkout becomes the register line.
+- Customers and staff share one NPC base (spawning, pathing, animation, cleanup) with a behavior module on top: `CustomerBehavior`, `CashierBehavior`, `StockerBehavior`. Future roles (manager, shoplifter) plug in the same way.
+- If the TCG system doesn't already handle these, add them. They're the usual Roblox NPC problems:
+  - The server owns NPC physics: call SetNetworkOwner(nil) on each NPC's root part so they don't stutter.
+  - Humanoid:MoveTo gives up after 8 seconds, so long walks go waypoint by waypoint or re-issue MoveTo.
+  - Recompute the path when Path.Blocked fires.
+  - Stuck detection: if an NPC makes no progress for a few seconds, recompute its path. If that fails, nudge it to the next waypoint or despawn it.
+  - Collision groups so NPCs don't block each other, doorways or players.
+  - The checkout line uses fixed queue spots that move up as people get served.
+  - Every customer has a patience timer. If it runs out in line or they can't find what they want, they leave unhappy, and that counts toward "customers lost" in the end-of-day summary.
+  - Pool NPC models and reuse them instead of creating and destroying them all day.
 
 ## Future (don't build yet, but don't block it)
 - **Manager** who auto-reorders stock. Cashier + stocker + manager = automated store, which unlocks expansion and offline earnings (capped) while the player is away.
@@ -71,10 +88,11 @@ Build these in order and playtest after each one:
 - **New locations.** You can't physically fit a bunch of stores per player on a 6-player map, so extra locations are managed from a city map screen (office computer or phone). Each one is a copy of the player's blueprint store with its own stats. They show up in the shared city as storefronts, billboards and delivery trucks with the player's logo.
 - **Branding:** a sign/logo editor and a rebrand event.
 - **Signature product.**
+- **Store events:** shoplifters, spills and messes, broken coolers, expired food. Shoplifters and other event NPCs use the same NPC base.
 
 ## Architecture rules
 - **The server owns money.** Cash, stock, wages and sales only change on the server. Clients send requests through RemoteEvents/RemoteFunctions, and the server validates every one (can they afford it, are they close enough to the shelf, is it their store, does the product exist).
-- One ModuleScript per system in ServerScriptService: PlotService, ClockService, EconomyService, InventoryService, DeliveryService, CustomerService, RegisterService, StaffService, DataService. Shared config and the product catalog go in ReplicatedStorage. All remotes live in one `Remotes` folder.
+- One ModuleScript per system in ServerScriptService: PlotService, ClockService, EconomyService, InventoryService, DeliveryService, NpcService, CustomerService, RegisterService, StaffService, DataService. NpcService is the shared NPC base; CustomerService and StaffService drive behaviors on top of it. Shared config and the product catalog go in ReplicatedStorage. All remotes live in one `Remotes` folder.
 - Use CollectionService tags (`Shelf`, `Cooler`, `HotFood`, `Register`, `DeliveryZone`) and Attributes (product type, capacity) instead of hardcoded paths. Every system finds its parts by tag inside a store model, so any store is just a clone of the template. That's the foundation for the blueprint system and new locations later.
 - Store logic never assumes a world position. Everything is relative to the plot.
 - Key per-store data by the owner's UserId plus a `StoreId` attribute (the starter store is `"flagship"`). Save stores as a list even though there's only one right now.
@@ -82,7 +100,7 @@ Build these in order and playtest after each one:
 
 ## Roblox rules
 - Keep the product list Roblox-safe: no alcohol, tobacco, vapes or lottery tickets. Energy drinks and coffee are fine.
-- Watch performance: 6 stores' worth of customers and staff adds up. Cap NPCs per store and per server, use PathfindingService with simple waypoints, and clean up NPCs when they leave.
+- Watch performance: 6 stores' worth of customers and staff adds up. Cap NPCs per store and per server.
 - When a player leaves, save first, then remove their store and NPCs and free the plot.
 
 ## How to work with me
