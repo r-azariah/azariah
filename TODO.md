@@ -6,8 +6,12 @@ Read this first when picking up the project in a new session.
 
 - Solution builds with **zero warnings** (warnings are errors) on the .NET 10 SDK.
 - `dotnet test Azariah.sln`: 38 tests pass (35 core, 3 headless UI incl. rendering every page).
-- `dotnet publish src/Azariah.App -c Release -r win-x64` produces a single portable
-  `Azariah.exe` (~51 MB). Works when cross-built from Linux.
+- `dotnet publish src/Azariah.App -c Release -r win-x64` produces a single portable, trimmed
+  `Azariah.exe` (~24 MB). Works when cross-built from Linux.
+- A trimmed linux-x64 build was smoke-tested under Xvfb: setup, navigation, new folder,
+  rename (F2), delete to Trash via Enter in the dialog, Settings.
+- v0.1 exe was handed to the user directly (zip), since the Actions workflow only appears
+  once it's on the default branch.
 - Not yet verified on real Windows hardware: auto-launch end to end, Explorer drag-in,
   system clipboard paste, custom title bar. **Test these first on Windows.**
 

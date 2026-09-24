@@ -8,8 +8,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\azariah.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <!-- Avalonia 12 XAML uses reflection-free compiled bindings; still avoid trimming for now. -->
-    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <!-- Portable publish: one self-contained Azariah.exe that runs from the USB with nothing installed. -->
@@ -21,6 +19,12 @@
     <DebugType>none</DebugType>
     <CopyDebugSymbolFilesFromPackages>false</CopyDebugSymbolFilesFromPackages>
     <AllowedReferenceRelatedFileExtensions>-</AllowedReferenceRelatedFileExtensions>
+    <!-- Trim unused framework code (51 MB -> 24 MB). Partial mode only trims assemblies that
+         declare themselves trim-safe; all bindings are compiled and JSON is source-generated. -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <!-- Only Avalonia's XAML designer support (never used at runtime) reports trim warnings. -->
+    <NoWarn>$(NoWarn);IL2104</NoWarn>
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 

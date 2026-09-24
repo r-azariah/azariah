@@ -31,6 +31,25 @@ public partial class FileBrowserView : UserControl
 
     private FileBrowserViewModel? Vm => DataContext as FileBrowserViewModel;
 
+    /// <summary>Focus the list when the page opens so keyboard shortcuts work right away.</summary>
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        Avalonia.Threading.DispatcherTimer.RunOnce(FocusList, TimeSpan.FromMilliseconds(150));
+    }
+
+    private void FocusList()
+    {
+        // ListBox passes focus to its items; with no items, focus the view so shortcuts still work.
+        var index = Math.Max(List.SelectedIndex, 0);
+        if (List.ContainerFromIndex(index) is { } container && container.Focus(NavigationMethod.Tab))
+        {
+            return;
+        }
+
+        Focus();
+    }
+
     private void OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ItemFromSource(e.Source) is { } item)

@@ -17,7 +17,7 @@
           <Border Classes="pill" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <mi:MaterialIcon Kind="UsbFlashDriveOutline" Width="14" Height="14" Foreground="{DynamicResource AzAccentBrush}" />
-              <TextBlock Text="{Binding CandidateRoot}" FontSize="12" />
+              <TextBlock Text="{Binding CandidateRoot}" FontSize="12" MaxWidth="400" TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Border>
           <TextBlock Classes="muted" Text="Drive name" FontSize="12" />
