@@ -2,6 +2,8 @@
 
 You're helping me build **Convenience Empire**, a Roblox game where you start by working the register at one tiny corner store and grow it into a worldwide brand. I have Roblox Studio open. We're reusing the map from our TCG shop game: a city map where up to 6 players each get their own plot. It already looks great, so this is a revamp, not a blank baseplate.
 
+Some starting pieces are already written and tested in the `r-azariah/azariah` repo under `convenience-empire/` (branch `claude/magical-cerf-8m9sox`). Pull it before you start and read `convenience-empire/README.md`.
+
 ## The pitch
 Each player claims a plot in a shared city and starts with one run-down corner store with a homemade sign. You're the only worker: you stock shelves, unpack deliveries, work the register and survive rush hour. As you earn, you hire help until the store runs itself. Then you grow: expand the flagship on your plot and open new locations. Eventually your logo is on storefronts, billboards and delivery trucks all over the city, next to the other 5 players' brands. The fantasy is watching something tiny you built become a brand that's everywhere.
 
@@ -23,6 +25,14 @@ Each player claims a plot in a shared city and starts with one run-down corner s
 ## This session: the starter store, from solo shift to first hires
 Goal: progression steps 1 and 2, playable in a 6-player server. Do NOT build the manager, automation, expansions or new locations yet. But build so they're easy to add later (see Architecture and Future).
 
+### Already built (in the repo)
+- `studio/BuildStoreTemplate.luau`: a Command Bar script that graybox-builds the whole starter store on a selected plot, with every tag, attribute, NPC stand point, queue spot and expansion zone from this prompt. `docs/store-layout.png` shows the layout from above.
+- `src/shared/Config.luau`: clock, store hours, customer, delivery and staff numbers.
+- `src/shared/ProductCatalog.luau`: the 10 starter products.
+- `tests/run.sh`: checks that run outside Roblox (layout overlaps, NPC reachability, catalog sanity). Re-run it if you change the builder or the shared modules.
+
+Use these instead of redoing them. Change them if the TCG place needs something different, but keep the tests passing.
+
 ### Step 1: Audit the TCG place first
 Before building anything:
 - Make sure we're working in a copy, not the live TCG game. If this is the original TCG place, stop and tell me so I can duplicate it. Never delete or edit TCG stuff in the original.
@@ -37,17 +47,17 @@ Before building anything:
 - Show me the audit before moving on.
 
 ### Step 2: Get studs down (graybox the starter store)
-Build the starter store on one plot. The map's look is the reason we're reusing it, so fit the store into it without wrecking what's there.
+Build the starter store on one plot by running `studio/BuildStoreTemplate.luau` in the Command Bar with that plot's floor part selected (instructions are at the top of the file). Check that the store front faces the street and that nothing from the TCG map is in the way, then adjust. The map's look is the reason we're reusing it, so fit the store into it without wrecking what's there. The builder already makes what's described below:
 - The starter store should be small and only take up part of the plot. Leave the rest open for future expansions (bigger floor, parking lot, gas pumps). Mark that space with transparent, non-collidable parts in an `ExpansionZones` folder so we don't build over it.
 - **Front:** entrance, windows, a homemade-looking sign (a plain part with text is fine for now), an Open/Closed sign on the door.
 - **Floor:** 3 to 4 aisles of shelves, a wall of drink coolers, a small hot food spot (roller grill and coffee), a register counter by the door.
 - **Back room:** stockroom with space for boxes, a back door, and a delivery drop spot outside it.
 
-Keep everything anchored and sized like a real small store (not huge). Organize it as one Model called `StoreTemplate` in ServerStorage with folders: `Building`, `Shelves`, `Coolers`, `HotFood`, `Register`, `Stockroom`, `DeliveryZone`, `Sign`, `ExpansionZones`. When a player joins, clone it onto their plot with PivotTo. It has to work on any of the 6 plots. Graybox first with simple parts and colors. Detail comes later.
+Everything is anchored and sized like a real small store (not huge), in one Model called `StoreTemplate` with folders: `Building`, `Shelves`, `Coolers`, `HotFood`, `Register`, `Stockroom`, `DeliveryZone`, `Sign`, `Markers`, `ExpansionZones`. The builder puts it in Workspace so we can look at it. Once the layout is right, move it to ServerStorage. When a player joins, clone it onto their plot with PivotTo. It has to work on any of the 6 plots. Graybox first with simple parts and colors. Detail comes later.
 
 ### Step 3: Core loop
 Build these in order and playtest after each one:
-1. **Products.** One ModuleScript catalog in ReplicatedStorage. Each product has: id, name, wholesale cost, default price, shelf type (shelf, cooler, hot food), and whether it spoils plus its shelf life. Start with about 10: chips, candy bar, gum, soda, water, energy drink, milk, bread, hot dog, coffee.
+1. **Products and config.** Already written: add `src/shared/ProductCatalog.luau` and `src/shared/Config.luau` to ReplicatedStorage as ModuleScripts named `ProductCatalog` and `Config`. Each product has an id, name, wholesale cost, default price, shelf type (shelf, cooler, hot food), units per box, shelf life if it spoils, and popularity. The 10 starters are chips, candy bar, gum, bread, soda, water, energy drink, milk, hot dog and coffee.
 2. **City clock and store hours.** One shared day/night clock for the whole server, so all stores open and close together and lighting/streetlights change with it. Each store has hours (start around 8am to 6pm game time). The door sign flips between Open and Closed, and customers only come while open. Put day length and hours in a Config module. Start around 10 real minutes per game day, with a short closed stretch.
 3. **Deliveries.** The player orders stock from a simple UI. Cost comes out when they order. Boxes show up at their delivery zone after a short delay.
 4. **Stocking.** The player picks up a box, carries it and fills a matching shelf slot. Shelves visibly show how full they are.
@@ -93,7 +103,8 @@ The TCG game already has working shop NPCs, and we learned a lot getting them ri
 ## Architecture rules
 - **The server owns money.** Cash, stock, wages and sales only change on the server. Clients send requests through RemoteEvents/RemoteFunctions, and the server validates every one (can they afford it, are they close enough to the shelf, is it their store, does the product exist).
 - One ModuleScript per system in ServerScriptService: PlotService, ClockService, EconomyService, InventoryService, DeliveryService, NpcService, CustomerService, RegisterService, StaffService, DataService. NpcService is the shared NPC base; CustomerService and StaffService drive behaviors on top of it. Shared config and the product catalog go in ReplicatedStorage. All remotes live in one `Remotes` folder.
-- Use CollectionService tags (`Shelf`, `Cooler`, `HotFood`, `Register`, `DeliveryZone`) and Attributes (product type, capacity) instead of hardcoded paths. Every system finds its parts by tag inside a store model, so any store is just a clone of the template. That's the foundation for the blueprint system and new locations later.
+- Use CollectionService tags (`Shelf`, `Cooler`, `HotFood`, `Register`, `DeliveryZone`, `Stockroom`, `QueueSpot`, `CashierSpot`, `CustomerSpawn`, `StaffSpawn`, `OpenSign`, `Marker`) and Attributes (`ShelfType`, `Capacity`, `ProductId`) instead of hardcoded paths. Every system finds its parts by tag inside a store model, so any store is just a clone of the template. That's the foundation for the blueprint system and new locations later.
+- Never use a global `CollectionService:GetTagged` for store parts. The template in ServerStorage has the same tags, so a global lookup picks up its shelves too.
 - Store logic never assumes a world position. Everything is relative to the plot.
 - Key per-store data by the owner's UserId plus a `StoreId` attribute (the starter store is `"flagship"`). Save stores as a list even though there's only one right now.
 - Use Luau type annotations where they're easy. Clear names. Short comments only where the why isn't obvious.
