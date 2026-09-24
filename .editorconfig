@@ -1,0 +1,41 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,axaml,xml,json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace
+dotnet_sort_system_directives_first = true
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+# CA1848/CA1873: LoggerMessage delegates are overkill for this app's logging volume.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+# CA1031: UI code intentionally catches broad exceptions at the boundary to show errors.
+dotnet_diagnostic.CA1031.severity = none
+# CA1716/CA1711: naming rules that fight with domain names (e.g. "Shared", "Collection").
+dotnet_diagnostic.CA1711.severity = none
+dotnet_diagnostic.CA1716.severity = none
+# CA2007: no ConfigureAwait in app code; UI continuations need the dispatcher.
+dotnet_diagnostic.CA2007.severity = none
+# CA1303: no localization resources yet.
+dotnet_diagnostic.CA1303.severity = none
+# CA1515: public types in an exe/test project are fine.
+dotnet_diagnostic.CA1515.severity = none
+# CA1707: test method names use underscores.
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA2000.severity = none

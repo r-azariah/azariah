@@ -1,0 +1,38 @@
+# Build output
+bin/
+obj/
+artifacts/
+publish/
+TestResults/
+*.binlog
+
+# IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local dev drive sandbox (never commit personal files)
+dev-drive/
+.azariah/
+
+# Secrets must never be committed. These patterns are a safety net, not a policy.
+*.env
+.env*
+*.pfx
+*.p12
+*.pem
+*.key
+*.kdbx
+secrets.json
+credentials.json
+.credentials.json
+auth.json
