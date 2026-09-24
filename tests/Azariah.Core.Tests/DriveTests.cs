@@ -84,6 +84,8 @@ public class DriveTests
         // "Unplug": marker disappears. "Replug" under a new letter: marker shows up elsewhere.
         File.Move(drive.Layout.MarkerFile, drive.Layout.MarkerFile + ".away");
         monitor.Poll();
+        Assert.False(disconnected); // one miss is tolerated
+        monitor.Poll();
         Assert.True(disconnected);
 
         DriveMarkerStore.Write(moved.Root, drive.Marker);

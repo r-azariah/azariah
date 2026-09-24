@@ -13,6 +13,10 @@ public sealed class DriveMonitor : IAsyncDisposable
     private readonly TimeSpan _interval;
     private readonly CancellationTokenSource _cts = new();
     private Task? _loop;
+    private int _misses;
+
+    /// <summary>Consecutive failed checks before the drive counts as gone (avoids flapping on a busy drive).</summary>
+    public const int MissesBeforeDisconnect = 2;
 
     public DriveMonitor(DriveRootLocator locator, string root, Guid driveId, TimeSpan? interval = null)
     {
@@ -39,8 +43,15 @@ public sealed class DriveMonitor : IAsyncDisposable
     {
         if (IsConnected)
         {
-            if (!IsDriveReachable(Root))
+            if (IsDriveReachable(Root))
             {
+                _misses = 0;
+                return;
+            }
+
+            if (++_misses >= MissesBeforeDisconnect)
+            {
+                _misses = 0;
                 IsConnected = false;
                 Disconnected?.Invoke(this, EventArgs.Empty);
             }
@@ -57,15 +68,26 @@ public sealed class DriveMonitor : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// The drive is gone when its root or marker file no longer exists, or a different drive now
+    /// sits at that path. A marker that exists but can't be read right now is tolerated.
+    /// </summary>
     private bool IsDriveReachable(string root)
     {
         try
         {
-            return DriveMarkerStore.TryRead(root) is { } marker && marker.DriveId == _driveId;
+            var markerPath = DriveMarkerStore.MarkerPathFor(root);
+            if (!Directory.Exists(root) || !File.Exists(markerPath))
+            {
+                return false;
+            }
+
+            var marker = DriveMarkerStore.TryRead(root);
+            return marker is null || marker.DriveId == _driveId;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return false;
+            return true;
         }
     }
 

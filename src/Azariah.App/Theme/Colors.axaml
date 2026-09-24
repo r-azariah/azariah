@@ -47,6 +47,11 @@
   <!-- The [A] mark, traced from the owner's logo. EvenOdd so the A's counter is cut out. -->
   <StreamGeometry x:Key="AzMark">F0 M0,0 H110 V50 H56 V372 H110 V422 H0 Z M541,0 H431 V50 H485 V372 H431 V422 H541 Z M218,50 H311 L434,351 H360 L338,291 H200 L178,351 H104 Z M270,117 L317,237 H222 Z</StreamGeometry>
 
+  <!-- The same mark in three parts, for the open/close animation. -->
+  <StreamGeometry x:Key="AzMarkLeft">M0,0 H110 V50 H56 V372 H110 V422 H0 Z</StreamGeometry>
+  <StreamGeometry x:Key="AzMarkA">F0 M218,50 H311 L434,351 H360 L338,291 H200 L178,351 H104 Z M270,117 L317,237 H222 Z</StreamGeometry>
+  <StreamGeometry x:Key="AzMarkRight">M541,0 H431 V50 H485 V372 H431 V422 H541 Z</StreamGeometry>
+
   <CornerRadius x:Key="AzCardRadius">12</CornerRadius>
   <CornerRadius x:Key="AzControlRadius">8</CornerRadius>
 </ResourceDictionary>

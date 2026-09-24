@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Azariah.App.Platform;
 using Azariah.Core.Drive;
@@ -11,11 +12,24 @@ internal static class Program
     {
         var options = LaunchOptions.Parse(args);
 
-        // Background auto-launcher: no UI framework is loaded in this mode.
+        // After an update the previous process may still be closing; let it finish first.
+        if (options.WaitForPid is { } pid)
+        {
+            WaitForExit(pid);
+        }
+
+        // Background auto-launcher and update helper: no UI framework is loaded in these modes.
         if (options.Watch)
         {
             return WatchMode.Run();
         }
+
+        if (options.FinishUpdate)
+        {
+            return UpdateManager.FinishUpdate(options);
+        }
+
+        UpdateManager.CleanupLeftovers();
 
         var volumes = new SystemVolumeProvider();
         var locator = new DriveRootLocator(volumes);
@@ -25,8 +39,19 @@ internal static class Program
             AppContext.BaseDirectory));
 
         SingleInstance? instance = null;
-        if (located is { Outcome: LocateOutcome.Found, Marker: { } marker })
+        if (located is { Outcome: LocateOutcome.Found, Root: { } root, Marker: { } marker })
         {
+            // Started from the drive on a PC with auto-launch: run the identical PC copy instead,
+            // so unplugging the drive can't pull the program out from under itself.
+            if (AutoLaunchManager.TryGetHandoffTarget(root, marker.DriveId) is { } local)
+            {
+                var info = new ProcessStartInfo(local) { UseShellExecute = false };
+                info.ArgumentList.Add("--root");
+                info.ArgumentList.Add(root);
+                using var _ = Process.Start(info);
+                return 0;
+            }
+
             instance = SingleInstance.TryAcquire(marker.DriveId, out var alreadyRunning);
             if (alreadyRunning)
             {
@@ -51,6 +76,22 @@ internal static class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+    private static void WaitForExit(int pid)
+    {
+        try
+        {
+            using var process = Process.GetProcessById(pid);
+            process.WaitForExit(TimeSpan.FromSeconds(15));
+        }
+        catch (ArgumentException)
+        {
+            // Already gone.
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
 }
 
 internal sealed record StartupContext(

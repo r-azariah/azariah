@@ -57,9 +57,6 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     [ObservableProperty]
     public partial ViewModelBase? CurrentPage { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsDisconnected { get; set; }
-
     public string DriveName => Session.Marker.DisplayName;
 
     public string RootText => Session.Layout.Root;
@@ -113,9 +110,6 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
     }
 
     public void NotifyDriveRenamed() => OnPropertyChanged(nameof(DriveName));
-
-    [RelayCommand]
-    private void RetryConnection() => RefreshCurrentPage();
 
     /// <summary>True if the path is somewhere the Files browser can show.</summary>
     public bool CanShow(string path) => Session.Layout.Contains(path) && !Session.Layout.IsProtected(path);

@@ -34,6 +34,20 @@ Read this first when picking up the project in a new session.
 - AI contracts in `src/Azariah.AI.Abstractions` (providers, tools, capabilities, permissions).
 - Docs: README, ARCHITECTURE, SECURITY (Vault + trusted devices + auto-launch), ROADMAP.
 
+## Session 3 additions (v0.3)
+
+- [A] open animation (glitch in, brackets open; skippable; off via Settings or Windows animation setting).
+- Unplugging the drive shows a short "Disconnected" screen, then AZARIAH closes (so the next
+  plug-in opens it fresh). Disconnect needs 2 failed checks in a row.
+- Drop-to-update: Settings > Update. A dropped zip/exe is staged in %TEMP% and run with
+  `--finish-update`, which waits for the app to exit, replaces the drive exe and the PC copy
+  (hash-verified), restarts the watcher, and reopens AZARIAH. Only 0.3+ builds can be installed this way.
+- Started from the drive on a PC with auto-launch and an identical PC copy: hands off to the PC copy.
+- Settings shows whether the background watcher is running (with a Start button); the app also
+  restarts a dead watcher on launch. Single-instance now falls through if the old window hangs.
+- **Auto-launch still unverified on real Windows.** First report: replug did nothing (likely the old
+  window never closed). Check with v0.3; if it still fails, read `%LOCALAPPDATA%\Azariah\logs`.
+
 ## Next, in order
 
 0. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the

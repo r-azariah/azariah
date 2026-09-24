@@ -20,7 +20,8 @@ public sealed record AutoLaunchStatus(
     bool LocalCopyUpToDate,
     bool RunningFromLocalCopy,
     string InstallFolder,
-    int PairedDriveCount);
+    int PairedDriveCount,
+    bool WatcherRunning);
 
 /// <summary>
 /// Turns auto-launch on or off for this PC. "On" means:
@@ -45,7 +46,7 @@ public sealed class AutoLaunchManager(LauncherPaths paths, IAppLog log)
     {
         if (!IsSupported)
         {
-            return new AutoLaunchStatus(AutoLaunchState.NotSupported, false, false, false, paths.InstallFolder, 0);
+            return new AutoLaunchStatus(AutoLaunchState.NotSupported, false, false, false, paths.InstallFolder, 0, false);
         }
 
         var config = _store.Load();
@@ -61,7 +62,78 @@ public sealed class AutoLaunchManager(LauncherPaths paths, IAppLog log)
             upToDate,
             RunningFromLocalCopy,
             paths.InstallFolder,
-            config.Drives.Count);
+            config.Drives.Count,
+            IsWatcherRunning());
+    }
+
+    /// <summary>True while a watcher holds its single-instance mutex in this Windows session.</summary>
+    public static bool IsWatcherRunning()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return false;
+        }
+
+        if (Mutex.TryOpenExisting(WatcherSignals.MutexName, out var mutex))
+        {
+            mutex.Dispose();
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool IsPaired(Guid driveId) => _store.Load().Drives.Any(d => d.DriveId == driveId);
+
+    /// <summary>Restarts the watcher if auto-launch is on for this drive but the watcher died.</summary>
+    public void EnsureWatcherRunning(Guid driveId)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows() && File.Exists(paths.InstalledExe) && IsPaired(driveId) && !IsWatcherRunning())
+            {
+                StartWatcher();
+                log.Info("Watcher was not running; started it.");
+            }
+        }
+        catch (Exception ex)
+        {
+            log.Error("Could not start the watcher.", ex);
+        }
+    }
+
+    /// <summary>
+    /// When AZARIAH is started from the drive on a PC where auto-launch is on and the PC copy is the
+    /// same build, returns the PC copy so the app runs from local disk (unplugging can't crash it).
+    /// </summary>
+    public static string? TryGetHandoffTarget(string driveRoot, Guid driveId)
+    {
+        try
+        {
+            var self = Environment.ProcessPath;
+            if (!OperatingSystem.IsWindows() || self is null || !PathGuard.IsInsideOrEqual(driveRoot, self))
+            {
+                return null;
+            }
+
+            var paths = LauncherPaths.ForCurrentUser();
+            if (!File.Exists(paths.InstalledExe)
+                || !new LauncherConfigStore(paths).Load().Drives.Any(d => d.DriveId == driveId))
+            {
+                return null;
+            }
+
+            var mine = FileVersionInfo.GetVersionInfo(self);
+            var local = FileVersionInfo.GetVersionInfo(paths.InstalledExe);
+            return new FileInfo(self).Length == new FileInfo(paths.InstalledExe).Length
+                && string.Equals(mine.ProductVersion, local.ProductVersion, StringComparison.Ordinal)
+                ? paths.InstalledExe
+                : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     public async Task EnableAsync(DriveMarker marker)
@@ -148,7 +220,7 @@ public sealed class AutoLaunchManager(LauncherPaths paths, IAppLog log)
         File.Move(temp, paths.InstalledExe, overwrite: true);
     }
 
-    private void StartWatcher()
+    public void StartWatcher()
     {
         var info = new ProcessStartInfo(paths.InstalledExe) { UseShellExecute = false };
         info.ArgumentList.Add("--watch");

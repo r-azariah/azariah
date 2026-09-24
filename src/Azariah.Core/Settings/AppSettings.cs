@@ -15,6 +15,9 @@ public sealed record AppSettings
     public bool ShowHiddenFiles { get; init; }
     public bool ConfirmMoveToTrash { get; init; } = true;
 
+    /// <summary>Play the [A] open animation at launch (also skipped when Windows animations are off).</summary>
+    public bool StartupAnimation { get; init; } = true;
+
     /// <summary>Phase 2: lock the Vault after this many idle minutes (0 = never).</summary>
     public int AutoLockMinutes { get; init; } = 10;
 }

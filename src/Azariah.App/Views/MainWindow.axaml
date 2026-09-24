@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Azariah.App.ViewModels"
+        xmlns:v="using:Azariah.App.Views"
         x:Class="Azariah.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding WindowTitle}"
@@ -19,5 +20,8 @@
         <ContentControl Content="{Binding Dialogs.Active}" />
       </Border>
     </Border>
+
+    <!-- [A] open / disconnect animation -->
+    <v:BootOverlay x:Name="Boot" />
   </Grid>
 </Window>

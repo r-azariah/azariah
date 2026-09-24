@@ -4,6 +4,9 @@
              x:Class="Azariah.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
   <UserControl.Styles>
+    <Style Selector="Border#UpdateDrop.over">
+      <Setter Property="BorderBrush" Value="{DynamicResource AzTextBrush}" />
+    </Style>
     <Style Selector="TextBlock.label">
       <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
       <Setter Property="FontSize" Value="13" />
@@ -25,16 +28,38 @@
           <StackPanel Grid.Column="1" Spacing="2">
             <TextBlock Classes="value" FontWeight="SemiBold" Text="{Binding AutoLaunchTitle}" />
             <TextBlock Classes="label" Text="{Binding AutoLaunchDetail}" TextWrapping="Wrap" />
+            <TextBlock Classes="label" Text="{Binding WatcherText}" IsVisible="{Binding AutoLaunchOn}" Margin="0,4,0,0" />
           </StackPanel>
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top" IsVisible="{Binding AutoLaunchSupported}">
             <Button Classes="primary" Content="Turn on" Command="{Binding EnableAutoLaunchCommand}"
                     IsVisible="{Binding !AutoLaunchOn}" IsEnabled="{Binding !IsWorking}" />
             <Button Classes="primary" Content="Update this PC" Command="{Binding UpdateLocalCopyCommand}"
                     IsVisible="{Binding CanUpdateLocalCopy}" IsEnabled="{Binding !IsWorking}" />
+            <Button Classes="primary" Content="Start watcher" Command="{Binding StartWatcherCommand}"
+                    IsVisible="{Binding CanStartWatcher}" IsEnabled="{Binding !IsWorking}" />
             <Button Content="Turn off" Command="{Binding DisableAutoLaunchCommand}"
                     IsVisible="{Binding AutoLaunchOn}" IsEnabled="{Binding !IsWorking}" />
           </StackPanel>
         </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="10">
+        <TextBlock Classes="h3" Text="Update" />
+        <Border x:Name="UpdateDrop" DragDrop.AllowDrop="True" Background="Transparent"
+                BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="1" Padding="18,16">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="3" VerticalAlignment="Center">
+              <TextBlock Classes="value" Text="Drop a new AZARIAH zip or exe here" />
+              <TextBlock Classes="label">
+                <Run Text="Installed " />
+                <Run Text="{Binding VersionText}" />
+              </TextBlock>
+              <TextBlock Classes="label" Text="{Binding UpdateStatus}" TextWrapping="Wrap" IsVisible="{Binding HasUpdateStatus}" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Choose file..." Command="{Binding ChooseUpdateFileCommand}"
+                    IsEnabled="{Binding !UpdateBusy}" VerticalAlignment="Center" />
+          </Grid>
+        </Border>
       </StackPanel>
 
       <StackPanel Spacing="10">
@@ -77,12 +102,12 @@
           <TextBlock Classes="label" Text="Trash" />
           <ToggleSwitch Grid.Column="1" IsChecked="{Binding ConfirmMoveToTrash}" OnContent="Ask first" OffContent="Don't ask" />
         </Grid>
+        <Grid ColumnDefinitions="140,*">
+          <TextBlock Classes="label" Text="Open animation" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding StartupAnimation}" OnContent="On" OffContent="Off" />
+        </Grid>
       </StackPanel>
 
-      <TextBlock Classes="faint" FontSize="11">
-        <Run Text="AZARIAH " />
-        <Run Text="{Binding VersionText}" />
-      </TextBlock>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

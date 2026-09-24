@@ -36,6 +36,7 @@ public sealed class WorkspaceSession
         SettingsStore = new SettingsStore(layout);
         Settings = SettingsStore.Load();
         AutoLaunch = new AutoLaunchManager(LauncherPaths.ForCurrentUser(), Log);
+        Updates = new UpdateManager(AutoLaunch.Paths, Log);
     }
 
     public DriveLayout Layout { get; }
@@ -52,6 +53,7 @@ public sealed class WorkspaceSession
     public SettingsStore SettingsStore { get; }
     public AppSettings Settings { get; private set; }
     public AutoLaunchManager AutoLaunch { get; }
+    public UpdateManager Updates { get; }
     public FileClipboard Clipboard { get; } = new();
 
     public event EventHandler? SettingsChanged;

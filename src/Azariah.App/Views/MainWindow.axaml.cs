@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Azariah.App.Platform;
 using Azariah.App.Services;
 using Azariah.App.ViewModels;
 
@@ -13,6 +14,7 @@ namespace Azariah.App.Views;
 public partial class MainWindow : Window
 {
     private DialogHost? _dialogs;
+    private MainViewModel? _main;
 
     public MainWindow()
     {
@@ -32,6 +34,10 @@ public partial class MainWindow : Window
         Topmost = false;
     }
 
+    public void PrepareOpenAnimation() => Boot.PrepareOpen();
+
+    public Task PlayOpenAnimationAsync() => Boot.PlayOpenAsync();
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
@@ -40,10 +46,39 @@ public partial class MainWindow : Window
             _dialogs.PropertyChanged -= OnDialogChanged;
         }
 
-        _dialogs = (DataContext as MainViewModel)?.Dialogs;
+        if (_main is not null)
+        {
+            _main.DriveLost -= OnDriveLost;
+        }
+
+        _main = DataContext as MainViewModel;
+        _dialogs = _main?.Dialogs;
         if (_dialogs is not null)
         {
             _dialogs.PropertyChanged += OnDialogChanged;
+        }
+
+        if (_main is not null)
+        {
+            _main.DriveLost += OnDriveLost;
+        }
+    }
+
+    /// <summary>Drive unplugged: short disconnect screen, then close.</summary>
+    private async void OnDriveLost(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                WindowState = WindowState.Normal;
+            }
+
+            await Boot.PlayCloseAsync("Disconnected", SystemAnimations.Enabled);
+        }
+        finally
+        {
+            App.Exit();
         }
     }
 
@@ -74,6 +109,13 @@ public partial class MainWindow : Window
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
+        if (Boot.IsPlayingOpen)
+        {
+            Boot.Skip();
+            e.Handled = true;
+            return;
+        }
+
         if (DataContext is not MainViewModel { Dialogs.Active: { } dialog })
         {
             return;

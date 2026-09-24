@@ -26,12 +26,5 @@
 
     <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
 
-    <!-- Drive removed -->
-    <Border Grid.ColumnSpan="2" Background="{DynamicResource AzOverlayBrush}" IsVisible="{Binding IsDisconnected}">
-      <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Classes="h1" Text="Drive removed" />
-        <TextBlock Classes="muted" Text="Plug it back in to continue." />
-      </StackPanel>
-    </Border>
   </Grid>
 </UserControl>
