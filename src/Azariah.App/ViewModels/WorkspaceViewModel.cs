@@ -29,18 +29,16 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         Session = session;
         var layout = session.Layout;
 
-        Files = new FilesPageViewModel(session, "Files", "Everything on your drive.", MaterialIconKind.FolderMultiple, layout.Root, "Drive");
+        Files = new FilesPageViewModel(session, "Files", layout.Root, "Drive");
 
+        // Interim IA: only places that exist and do something. Vault/Passwords return when built;
+        // AI becomes the command surface; Transfer is a location (see docs/DESIGN.md).
         NavItems =
         [
             new("home", "Home", MaterialIconKind.HomeVariantOutline, () => new HomeViewModel(session, this)),
             new("files", "Files", MaterialIconKind.FolderOutline, () => Files),
-            new("vault", "Vault", MaterialIconKind.ShieldLockOutline, ComingSoonViewModel.Vault, "Soon"),
-            new("passwords", "Passwords", MaterialIconKind.KeyVariant, ComingSoonViewModel.Passwords, "Soon"),
             new("roblox", "Roblox", MaterialIconKind.CubeOutline, () => FilesPageViewModel.Roblox(session)),
-            new("setupkit", "Setup Kit", MaterialIconKind.ToolboxOutline, () => FilesPageViewModel.SetupKit(session)),
-            new("transfer", "Transfer", MaterialIconKind.SwapHorizontal, () => FilesPageViewModel.Transfer(session)),
-            new("ai", "AI", MaterialIconKind.RobotOutline, () => new AiViewModel(), "Soon"),
+            new("setupkit", "Setup", MaterialIconKind.ToolboxOutline, () => FilesPageViewModel.SetupKit(session)),
             new("settings", "Settings", MaterialIconKind.CogOutline, () => new SettingsViewModel(session, this)),
         ];
 

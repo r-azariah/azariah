@@ -24,8 +24,6 @@
     <DataTemplate DataType="vm:HomeViewModel"><v:HomeView /></DataTemplate>
     <DataTemplate DataType="vm:FilesPageViewModel"><v:FilesPageView /></DataTemplate>
     <DataTemplate DataType="vm:FileBrowserViewModel"><v:FileBrowserView /></DataTemplate>
-    <DataTemplate DataType="vm:ComingSoonViewModel"><v:ComingSoonView /></DataTemplate>
-    <DataTemplate DataType="vm:AiViewModel"><v:AiView /></DataTemplate>
     <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
     <DataTemplate DataType="vm:TrashViewModel"><v:TrashView /></DataTemplate>
     <DataTemplate DataType="dvm:ConfirmDialogViewModel"><dv:ConfirmDialogView /></DataTemplate>
@@ -36,8 +34,8 @@
   <Application.Styles>
     <FluentTheme>
       <FluentTheme.Palettes>
-        <ColorPaletteResources x:Key="Dark" Accent="#38BDF8" RegionColor="#0A0D12" ErrorText="#F87171" />
-        <ColorPaletteResources x:Key="Light" Accent="#0284C7" RegionColor="#F4F6F9" ErrorText="#DC2626" />
+        <ColorPaletteResources x:Key="Dark" Accent="#D6D6D2" RegionColor="#000000" ErrorText="#F87171" />
+        <ColorPaletteResources x:Key="Light" Accent="#000000" RegionColor="#EDEDEA" ErrorText="#DC2626" />
       </FluentTheme.Palettes>
     </FluentTheme>
     <mi:MaterialIconStyles />

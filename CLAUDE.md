@@ -1,6 +1,7 @@
 # AZARIAH: notes for coding sessions
 
-Start with `TODO.md` (checkpoint), then `ARCHITECTURE.md` and `SECURITY.md`.
+Start with `TODO.md` (checkpoint), then `docs/DESIGN.md` for anything visual, then
+`ARCHITECTURE.md` and `SECURITY.md`.
 
 - Build/test: `dotnet test Azariah.sln` (.NET 10 SDK). Warnings are errors.
 - Windows exe: `scripts/publish.sh` (Linux/macOS) or `scripts/publish.ps1` (Windows).
@@ -13,4 +14,5 @@ Rules:
 - Never hardcode drive letters; store drive-relative paths.
 - Nothing executes from the USB automatically. Programs launch only after a confirmation.
 - File changes go through `FileOperationService`; deletes go to Trash.
+- UI: it's the owner's tool, not a product page. No marketing copy. Ask before identity decisions.
 - Update `TODO.md` at the end of every session.

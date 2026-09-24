@@ -98,6 +98,13 @@
             <Rectangle Width="1" Height="18" Fill="{DynamicResource AzBorderBrush}" Margin="6,0" />
             <Button Classes="tool" Command="{Binding RevealCommand}" ToolTip.Tip="Show in Windows Explorer"><mi:MaterialIcon Kind="OpenInNew" /></Button>
             <Button Classes="tool" Command="{Binding OpenCurrentInExplorerCommand}" ToolTip.Tip="Open this folder in Windows Explorer"><mi:MaterialIcon Kind="FolderOpenOutline" /></Button>
+            <Rectangle Width="1" Height="18" Fill="{DynamicResource AzBorderBrush}" Margin="6,0" />
+            <Button Classes="tool" Command="{Binding ImportFromPcCommand}" ToolTip.Tip="Copy files from this PC into this folder">
+              <StackPanel Orientation="Horizontal" Spacing="6"><mi:MaterialIcon Kind="Download" /><TextBlock Text="Import" /></StackPanel>
+            </Button>
+            <Button Classes="tool" Command="{Binding ExportToPcCommand}" ToolTip.Tip="Copy the selection to a folder on this PC">
+              <StackPanel Orientation="Horizontal" Spacing="6"><mi:MaterialIcon Kind="Upload" /><TextBlock Text="Export" /></StackPanel>
+            </Button>
           </StackPanel>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
             <Border Classes="pill" IsVisible="{Binding FilterLabel, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Center">
@@ -166,8 +173,7 @@
                 BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="1,0,0,0" Padding="18,6,18,12">
           <Panel>
             <StackPanel Spacing="4" IsVisible="{Binding Details, Converter={x:Static ObjectConverters.IsNull}}" Margin="0,8,0,0">
-              <TextBlock Classes="eyebrow" Text="DETAILS" />
-              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="Select one item to see its details. Drag files in from Explorer to copy them here." />
+              <TextBlock Classes="faint" FontSize="12" Text="Nothing selected" />
             </StackPanel>
             <ScrollViewer IsVisible="{Binding Details, Converter={x:Static ObjectConverters.IsNotNull}}">
               <StackPanel Spacing="12" Margin="0,8,0,0" DataContext="{Binding Details}" x:DataType="vm:FileItemViewModel">

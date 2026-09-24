@@ -46,13 +46,13 @@ public sealed partial class WelcomeViewModel : ViewModelBase
 
     public bool HasCandidates => Candidates.Count > 1;
 
-    public string Headline => NeedsSetup ? "Set up this drive" : HasCandidates ? "Pick your drive" : "Plug in your drive";
+    public string Headline => NeedsSetup ? "Set up this drive" : HasCandidates ? "Pick a drive" : "Plug in your drive";
 
     public string Explanation => NeedsSetup
-        ? "AZARIAH will create its folders here: Files, Roblox, Transfer, Public and Setup Kit, plus a small hidden .azariah folder for its own data. Nothing that's already on the drive is touched."
+        ? "Creates Files, Roblox, Transfer, Public, SetupKit and .azariah here. Existing files stay as they are."
         : HasCandidates
-            ? "More than one AZARIAH drive is connected. Choose the one to open."
-            : "No AZARIAH drive is connected. Plug it in and this screen will pick it up automatically, or choose a drive or folder yourself.";
+            ? "More than one AZARIAH drive is connected."
+            : "Or choose a drive or folder.";
 
     [RelayCommand]
     private void SetUp()

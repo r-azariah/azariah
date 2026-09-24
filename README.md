@@ -14,20 +14,21 @@ and the checkpoint in [TODO.md](TODO.md).
 
 | Section | State |
 | --- | --- |
-| Home | Storage, recent files, shortcuts, Vault and this-PC status |
-| Files | Browse, new folder, rename, copy/cut/paste, move, Trash, search, details + SHA-256, drag and drop, open with Windows |
+| Home | Current state: recent files, storage, Vault, this PC, auto-launch, Transfer, places |
+| Files | Browse, new folder, rename, copy/cut/paste, move, Trash, search, details + SHA-256, drag in from Explorer, import/export, open with Windows |
 | Roblox | Workspace folders with Places / Scripts / Models / Images / Docs / Backups filters |
-| Setup Kit | Organized installers, skills, configs, docs; programs never run without a confirmation |
-| Transfer | Drop zone with "Add from this PC" and "Copy selected to this PC" |
+| Setup | Installers, skills, configs, docs; programs never run without a confirmation |
 | Settings | Auto-launch on/off, drive name, theme, hidden files, Trash |
-| Vault, Passwords, AI | Designed, placeholder pages (Phases 2, 5, 7) |
+| Vault, Passwords, AI | Designed (SECURITY.md, ARCHITECTURE.md), not built yet |
+
+A full visual redesign is in progress: see [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Quick start (Windows)
 
 1. Put `Azariah.exe` in the root of your USB drive (for example `E:\Azariah.exe`).
 2. Double-click it. The first time, it offers to set up the drive: it creates `Files`, `Roblox`,
    `Transfer`, `Public`, `SetupKit` and a small `.azariah` folder. Existing files are not touched.
-3. On your own PCs: **Settings → Auto-launch on this PC → Turn on**. From then on, plugging the
+3. On your own PCs: **Settings → Auto-launch → Turn on**. From then on, plugging the
    drive in opens AZARIAH within a couple of seconds. It shows up as "Azariah" in
    Task Manager → Startup apps, where you can switch it off.
 

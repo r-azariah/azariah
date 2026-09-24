@@ -1,70 +1,35 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:vm="using:Azariah.App.ViewModels"
              x:Class="Azariah.App.Views.FilesPageView"
              x:DataType="vm:FilesPageViewModel">
-  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="28,16,28,16">
-    <Grid ColumnDefinitions="Auto,*,Auto">
-      <Border Width="40" Height="40" CornerRadius="11" Background="{DynamicResource AzAccentSoftBrush}">
-        <mi:MaterialIcon Kind="{Binding Icon}" Width="22" Height="22" Foreground="{DynamicResource AzAccentBrush}" />
-      </Border>
-      <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-        <TextBlock Classes="h2" Text="{Binding Title}" />
-        <TextBlock Classes="muted" FontSize="12" Text="{Binding Subtitle}" />
-      </StackPanel>
-      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowTransferActions}">
-        <Button Command="{Binding Browser.ImportFromPcCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <mi:MaterialIcon Kind="Download" Width="16" Height="16" />
-            <TextBlock Text="Add from this PC" />
-          </StackPanel>
-        </Button>
-        <Button Command="{Binding Browser.ExportToPcCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <mi:MaterialIcon Kind="Upload" Width="16" Height="16" />
-            <TextBlock Text="Copy selected to this PC" />
-          </StackPanel>
-        </Button>
-      </StackPanel>
-    </Grid>
+  <Grid RowDefinitions="Auto,Auto,*" Margin="24,24,28,20">
+    <TextBlock Classes="h1" Text="{Binding Title}" />
 
-    <ItemsControl Grid.Row="1" Margin="0,14,0,0" ItemsSource="{Binding Filters}" IsVisible="{Binding HasFilters}">
+    <ItemsControl Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Filters}" IsVisible="{Binding HasFilters}">
       <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
+        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="vm:FilterChip">
-          <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsActive, Mode=OneWay}" CornerRadius="999" Padding="14,5"
+          <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsActive, Mode=OneWay}" Padding="10,4"
                         Command="{Binding $parent[ItemsControl].((vm:FilesPageViewModel)DataContext).ApplyFilterCommand}" CommandParameter="{Binding}" />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <ItemsControl Grid.Row="1" Margin="0,14,0,0" ItemsSource="{Binding Sections}" IsVisible="{Binding HasSections}">
+    <ItemsControl Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Sections}" IsVisible="{Binding HasSections}">
       <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
+        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="vm:SectionLink">
-          <Button CornerRadius="999" Padding="12,5"
-                  Command="{Binding $parent[ItemsControl].((vm:FilesPageViewModel)DataContext).OpenSectionCommand}" CommandParameter="{Binding}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <mi:MaterialIcon Kind="{Binding Icon}" Width="15" Height="15" Foreground="{DynamicResource AzAccentBrush}" />
-              <TextBlock Text="{Binding Label}" />
-            </StackPanel>
-          </Button>
+          <Button Classes="ghost" Content="{Binding Label}"
+                  Command="{Binding $parent[ItemsControl].((vm:FilesPageViewModel)DataContext).OpenSectionCommand}" CommandParameter="{Binding}" />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <Border Grid.Row="2" Classes="pill" CornerRadius="8" Padding="12,8" Margin="0,12,0,0" IsVisible="{Binding HasBanner}">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <mi:MaterialIcon Kind="InformationOutline" Width="16" Height="16" Foreground="{DynamicResource AzAccentBrush}" />
-        <TextBlock Text="{Binding Banner}" FontSize="12" TextWrapping="Wrap" />
-      </StackPanel>
-    </Border>
-
-    <ContentControl Grid.Row="3" Margin="0,12,0,0" Content="{Binding Browser}" />
+    <ContentControl Grid.Row="2" Margin="0,14,0,0" Content="{Binding Browser}" />
   </Grid>
 </UserControl>

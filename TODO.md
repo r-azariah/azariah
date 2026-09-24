@@ -17,9 +17,12 @@ Read this first when picking up the project in a new session.
 
 ## Done
 
-- Phase 1 shell: Home, Files, Roblox (kind filters), Setup Kit (sections + banner),
-  Transfer (import/export), Settings, Trash page, Welcome/setup screen, disconnect overlay,
+- Phase 1 shell: Home (state view), Files (with Import/Export), Roblox (kind filters),
+  Setup (sections), Settings, Trash page, Welcome/setup screen, disconnect overlay,
   dark/light themes, in-window dialogs.
+- Interim design cleanup (session 2): `[A]` logo + icon, native title bar, neutral palette,
+  marketing copy and placeholder pages removed, nav cut to Home/Files/Roblox/Setup/Settings.
+  Transfer is a location; AI will be a command surface; Passwords will live inside Vault.
 - Core: drive root detection (no drive letters), drive monitor (re-plug under new letter
   rebuilds the session), safe file ops (temp-file replace, conflicts, progress, cancel),
   on-drive Trash, search (text, wildcards, kinds), recent files (relative, never Vault),
@@ -33,6 +36,8 @@ Read this first when picking up the project in a new session.
 
 ## Next, in order
 
+0. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the
+   three typography directions and asking the owner. Don't build screens before they choose.
 1. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.
 2. **Setup Kit v2** (see ROADMAP): installer sidecar manifests + SHA-256 verify + Authenticode
    check (`WinVerifyTrust`), Installers page, Skills page with install targets from

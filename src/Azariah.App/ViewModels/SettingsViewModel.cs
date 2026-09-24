@@ -83,13 +83,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
         CanUpdateLocalCopy = AutoLaunchOn && !status.LocalCopyUpToDate && !status.RunningFromLocalCopy;
         (AutoLaunchTitle, AutoLaunchDetail) = status.State switch
         {
-            AutoLaunchState.On when CanUpdateLocalCopy => ("On, but this PC has an older copy",
-                "The drive has a newer AZARIAH than the copy on this PC. Update it so auto-launch runs the latest version."),
-            AutoLaunchState.On => ("On for this PC",
-                $"When {_s.Marker.DisplayName} is plugged in, AZARIAH opens by itself within a couple of seconds. It runs from a verified copy in {status.InstallFolder}, never straight from the USB."),
-            AutoLaunchState.Off => ("Off for this PC",
-                "Turn it on and AZARIAH opens by itself whenever this drive is plugged into this PC. Only do this on your own computers."),
-            _ => ("Windows only", "Auto-launch uses a Windows startup entry, so it's only available on Windows."),
+            AutoLaunchState.On when CanUpdateLocalCopy => ("On, older copy on this PC", "The drive has a newer build than this PC."),
+            AutoLaunchState.On => ("On", $"Opens when {_s.Marker.DisplayName} is plugged in. Runs from {status.InstallFolder}."),
+            AutoLaunchState.Off => ("Off", "Opens AZARIAH when this drive is plugged into this PC."),
+            _ => ("Windows only", string.Empty),
         };
     }
 
@@ -97,13 +94,13 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private async Task EnableAutoLaunch()
     {
         var ok = await _s.Dialogs.ConfirmAsync(
-            "Turn on auto-launch for this PC?",
-            "AZARIAH will open by itself whenever this drive is plugged into this computer. Only do this on your own PCs.",
+            "Turn on auto-launch?",
+            $"AZARIAH will open whenever {_s.Marker.DisplayName} is plugged into {MachineName}.",
             "Turn on",
             details:
             [
                 new DetailRow("Copies AZARIAH to", _s.AutoLaunch.Paths.InstallFolder),
-                new DetailRow("Adds startup app", "\"Azariah\" (turn it off any time in Task Manager > Startup apps)"),
+                new DetailRow("Startup app", "\"Azariah\" (Task Manager > Startup apps)"),
                 new DetailRow("Opens for", $"{_s.Marker.DisplayName} only (drive id {DriveIdText})"),
                 new DetailRow("Admin rights", "Not needed"),
             ]);
@@ -117,14 +114,14 @@ public sealed partial class SettingsViewModel : ViewModelBase
             await _s.AutoLaunch.EnableAsync(_s.Marker);
             await _s.Dialogs.AlertAsync(
                 "Auto-launch is on",
-                $"Next time you plug in {_s.Marker.DisplayName}, AZARIAH opens by itself. You'll find \"Azariah\" under Task Manager > Startup apps.");
+                $"Unplug {_s.Marker.DisplayName} and plug it back in to try it.");
         });
     }
 
     [RelayCommand]
     private async Task DisableAutoLaunch()
     {
-        var ok = await _s.Dialogs.ConfirmAsync("Turn off auto-launch?", "AZARIAH will stop opening by itself on this PC. You can still open it from the drive.", "Turn off");
+        var ok = await _s.Dialogs.ConfirmAsync("Turn off auto-launch?", $"AZARIAH stops opening by itself on {MachineName}.", "Turn off");
         if (ok)
         {
             await RunAsync(() => _s.AutoLaunch.DisableAsync(_s.Marker.DriveId));
@@ -155,7 +152,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private async Task RepairFolders()
     {
         DriveInitializer.EnsureFolders(_s.Layout);
-        await _s.Dialogs.AlertAsync("Folders checked", "Any missing standard folders were recreated. Nothing was deleted or overwritten.");
+        await _s.Dialogs.AlertAsync("Folders checked", "Missing standard folders were recreated.");
     }
 
     [RelayCommand]

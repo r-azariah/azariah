@@ -61,7 +61,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
 
         Current = workspace;
-        WindowTitle = $"AZARIAH · {marker.DisplayName}";
+        WindowTitle = marker.DisplayName;
         session.Log.Info("Workspace opened.");
         StartMonitor(root, marker.DriveId);
     }

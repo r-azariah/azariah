@@ -1,24 +1,20 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:vm="using:Azariah.App.ViewModels"
              xmlns:drive="using:Azariah.Core.Drive"
              x:Class="Azariah.App.Views.WelcomeView"
              x:DataType="vm:WelcomeViewModel">
   <Grid>
-    <Border Classes="card" Width="520" Padding="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Width="520" Padding="36" HorizontalAlignment="Center" VerticalAlignment="Center">
       <StackPanel Spacing="16">
-        <Image Source="/Assets/azariah-256.png" Width="72" Height="72" HorizontalAlignment="Left" />
-        <TextBlock Classes="eyebrow" Text="AZARIAH" />
+        <Path Data="{StaticResource AzMark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
+              Width="52" Height="41" HorizontalAlignment="Left" Margin="0,0,0,12" />
         <TextBlock Classes="h1" Text="{Binding Headline}" />
         <TextBlock Classes="muted" Text="{Binding Explanation}" TextWrapping="Wrap" />
 
         <StackPanel Spacing="10" IsVisible="{Binding NeedsSetup}">
           <Border Classes="pill" HorizontalAlignment="Left">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <mi:MaterialIcon Kind="UsbFlashDriveOutline" Width="14" Height="14" Foreground="{DynamicResource AzAccentBrush}" />
-              <TextBlock Text="{Binding CandidateRoot}" FontSize="12" MaxWidth="400" TextTrimming="CharacterEllipsis" />
-            </StackPanel>
+            <TextBlock Text="{Binding CandidateRoot}" FontSize="12" MaxWidth="400" TextTrimming="CharacterEllipsis" />
           </Border>
           <TextBlock Classes="muted" Text="Drive name" FontSize="12" />
           <TextBox Text="{Binding DriveName}" MaxLength="40" />
@@ -32,7 +28,6 @@
                       Command="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).OpenCommand}"
                       CommandParameter="{Binding}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                  <mi:MaterialIcon Kind="UsbFlashDrive" Width="20" Height="20" Foreground="{DynamicResource AzAccentBrush}" />
                   <TextBlock Text="{Binding Marker.DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center" />
                   <TextBlock Text="{Binding Root}" Classes="muted" VerticalAlignment="Center" />
                 </StackPanel>
@@ -45,10 +40,7 @@
                    IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
         <Button Classes="ghost" Command="{Binding ChooseFolderCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <mi:MaterialIcon Kind="FolderOpenOutline" Width="16" Height="16" />
-            <TextBlock Text="Choose a drive or folder..." />
-          </StackPanel>
+          <TextBlock Text="Choose a drive or folder..." />
         </Button>
       </StackPanel>
     </Border>

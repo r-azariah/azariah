@@ -107,7 +107,7 @@ public sealed partial class FileBrowserViewModel : ViewModelBase
 
     public string EmptyText => IsSearchResults
         ? (IsSearching ? "Searching..." : "Nothing matched.")
-        : "This folder is empty. Drop files here to add them.";
+        : "Empty folder. Drop files here.";
 
     public string ItemCountText
     {
@@ -195,7 +195,7 @@ public sealed partial class FileBrowserViewModel : ViewModelBase
         {
             var ok = await _s.Dialogs.ConfirmAsync(
                 "Run this program?",
-                $"\"{item.Name}\" is a program or script. It will run on this PC ({_s.Shell.MachineDisplayName}) with your permissions. Only run things you trust.",
+                $"\"{item.Name}\" will run on {_s.Shell.MachineDisplayName} with your permissions.",
                 "Run",
                 danger: true,
                 details:
@@ -332,7 +332,7 @@ public sealed partial class FileBrowserViewModel : ViewModelBase
             var what = paths.Count == 1 ? $"\"{Path.GetFileName(paths[0])}\"" : $"{paths.Count} items";
             var ok = await _s.Dialogs.ConfirmAsync(
                 "Move to Trash?",
-                $"Move {what} to AZARIAH's Trash? You can restore it from Trash later. (Windows has no Recycle Bin for USB drives, so AZARIAH keeps its own.)",
+                $"Move {what} to Trash? You can restore it from Settings > Trash.",
                 "Move to Trash",
                 danger: true);
             if (!ok)
