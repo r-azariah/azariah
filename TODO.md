@@ -78,13 +78,14 @@ Read this first when picking up the project in a new session.
   the rest of `Roblox\` is general. Roblox page Games scope follows it.
 - Fixed `Prepare_extracts_the_exe_from_a_zip_and_rejects_junk` for Windows (the version-resource check
   rejects the fake exe there; the test assumed Linux).
-- Plugging the drive in also opens Explorer (Windows AutoPlay "Open folder" on the laptop). Fix is next.
+- v0.7: plugging in opens only AZARIAH. `AutoPlayPolicy` sets this user's removable-drive AutoPlay to
+  "take no action" once per PC while auto-launch is on (Windows can only cancel AutoPlay for one drive
+  through an HKLM key, and the app never needs admin). The old choice is kept in launcher.json and put
+  back when auto-launch is turned off for the last drive; a choice made in Windows later is left alone.
 
 ## Next, in order
 
-0. **Features that do something** (owner, 2026-09-24): first, plug-in opens only AZARIAH (the watcher
-   cancels AutoPlay for this drive via `IQueryCancelAutoPlay` in the ROT). Then candidates the owner
-   hasn't ranked: Roblox project pages (status from each game's CLAUDE.md, last pass, LATEST place with
+0. **Features that do something** (owner, 2026-09-24). Candidates the owner hasn't ranked: Roblox project pages (status from each game's CLAUDE.md, last pass, LATEST place with
    Open in Studio, Old Versions, "save new version"), Home = where I left off, Ctrl+Space command bar,
    one-button new-PC setup.
 1. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the

@@ -9,6 +9,14 @@ public sealed record LauncherConfig
 {
     public int Version { get; init; } = 1;
     public List<PairedDrive> Drives { get; init; } = [];
+
+    /// <summary>True once AZARIAH set this user's removable-drive AutoPlay to "take no action".</summary>
+    public bool AutoPlayChanged { get; init; }
+
+    /// <summary>The removable-drive AutoPlay choices from before that change (null = unset), to put back.</summary>
+    public string? AutoPlayBefore { get; init; }
+
+    public string? AutoPlayDefaultBefore { get; init; }
 }
 
 /// <summary>Where the auto-launcher lives on this PC. Per-user locations, no admin rights needed.</summary>

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using Azariah.Core.Diagnostics;
 using Azariah.Core.Drive;
@@ -152,6 +153,7 @@ public sealed class AutoLaunchManager(LauncherPaths paths, IAppLog log)
         _store.Save(config);
 
         StartupRegistration.Register(paths.InstalledExe);
+        ChangeAutoPlay(apply: true);
         StartWatcher();
         log.Info("Auto-launch enabled on this PC.");
     }
@@ -171,10 +173,33 @@ public sealed class AutoLaunchManager(LauncherPaths paths, IAppLog log)
         {
             StartupRegistration.Unregister();
             WatcherSignals.StopRunningWatcher(TimeSpan.FromSeconds(3));
+            ChangeAutoPlay(apply: false);
         }
 
         log.Info("Auto-launch disabled for this drive on this PC.");
         return Task.CompletedTask;
+    }
+
+    /// <summary>Plugging a paired drive in should open AZARIAH, not File Explorer too.</summary>
+    [SupportedOSPlatform("windows")]
+    private void ChangeAutoPlay(bool apply)
+    {
+        try
+        {
+            var policy = AutoPlayPolicy.ForCurrentUser(_store, log);
+            if (apply)
+            {
+                policy.Apply();
+            }
+            else
+            {
+                policy.Restore();
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            log.Error("Could not change AutoPlay for removable drives.", ex);
+        }
     }
 
     /// <summary>Replaces the PC's copy with the version currently running from the USB.</summary>

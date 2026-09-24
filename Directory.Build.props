@@ -7,7 +7,7 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <Company>Azariah</Company>
     <Product>Azariah</Product>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <Deterministic>true</Deterministic>
     <!-- Keep builds reproducible and avoid leaking local paths into binaries. -->
     <PathMap>$(MSBuildThisFileDirectory)=/src/</PathMap>

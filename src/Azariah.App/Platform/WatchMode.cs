@@ -41,6 +41,19 @@ internal static class WatchMode
         var watcher = new DriveArrivalWatcher(new SystemVolumeProvider());
         log.Info($"Watcher started for {config.Drives.Count} drive(s).");
 
+        // PCs paired before AutoPlayPolicy existed: stop Explorer opening alongside AZARIAH.
+        if (OperatingSystem.IsWindows() && config.Drives.Count > 0 && !config.AutoPlayChanged)
+        {
+            try
+            {
+                AutoPlayPolicy.ForCurrentUser(store, log).Apply();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            {
+                log.Error("Could not change AutoPlay for removable drives.", ex);
+            }
+        }
+
         try
         {
             while (!stop.WaitOne(TimeSpan.FromSeconds(1)))
