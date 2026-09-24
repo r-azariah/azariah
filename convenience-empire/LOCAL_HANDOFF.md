@@ -18,7 +18,7 @@ You're picking up from a cloud session that planned this game with me and built 
 - Small steps. After each one, tell me what you built, where it lives and how to test it in Play mode.
 - If something in the TCG place is unclear and you'd have to guess, ask me.
 - Function first, pretty later.
-- Commit to the branch `claude/magical-cerf-8m9sox`. Don't open a pull request unless I ask.
+- Commit to the branch `claude/magical-cerf-8m9sox`. It already has a pull request (https://github.com/r-azariah/azariah/pull/1), and pushing to the branch updates it. Don't open another one.
 
 ## Get the repo
 If it isn't on the laptop yet:
