@@ -4,7 +4,20 @@
              x:Class="Azariah.App.Views.FilesPageView"
              x:DataType="vm:FilesPageViewModel">
   <Grid RowDefinitions="Auto,Auto,*" Margin="24,24,28,20">
-    <TextBlock Classes="h1" Text="{Binding Title}" />
+    <StackPanel Orientation="Horizontal" Spacing="24">
+      <TextBlock Classes="h1" Text="{Binding Title}" />
+      <ItemsControl ItemsSource="{Binding Scopes}" IsVisible="{Binding HasScopes}" VerticalAlignment="Bottom" Margin="0,0,0,4">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:ScopeItem">
+            <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsActive, Mode=OneWay}" Padding="12,4"
+                          Command="{Binding $parent[ItemsControl].((vm:FilesPageViewModel)DataContext).SelectScopeCommand}" CommandParameter="{Binding}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
 
     <ItemsControl Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Filters}" IsVisible="{Binding HasFilters}">
       <ItemsControl.ItemsPanel>

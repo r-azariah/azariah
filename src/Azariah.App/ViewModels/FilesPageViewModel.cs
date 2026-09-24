@@ -17,17 +17,63 @@ public sealed partial class FilterChip(string label, IReadOnlySet<FileKind>? kin
 
 public sealed record SectionLink(string Label, string Path);
 
-/// <summary>A titled page around a file browser. Used for Files, Roblox and Setup.</summary>
-public sealed partial class FilesPageViewModel(WorkspaceSession session, string title, string root, string rootLabel) : ViewModelBase
+/// <summary>One root the page can switch between (e.g. Roblox: Games / General), each with its own browser.</summary>
+public sealed partial class ScopeItem(string label, FileBrowserViewModel browser) : ObservableObject
 {
-    public string Title { get; } = title;
-    public FileBrowserViewModel Browser { get; } = new(session, root, rootLabel);
+    public string Label { get; } = label;
+    public FileBrowserViewModel Browser { get; } = browser;
+
+    [ObservableProperty]
+    public partial bool IsActive { get; set; }
+}
+
+/// <summary>A titled page around a file browser. Used for Files, Roblox and Setup.</summary>
+public sealed partial class FilesPageViewModel : ViewModelBase
+{
+    public FilesPageViewModel(WorkspaceSession session, string title, string root, string rootLabel)
+        : this(title, [new ScopeItem(rootLabel, new FileBrowserViewModel(session, root, rootLabel))])
+    {
+    }
+
+    private FilesPageViewModel(string title, IReadOnlyList<ScopeItem> scopes)
+    {
+        Title = title;
+        Scopes = scopes;
+        scopes[0].IsActive = true;
+        Browser = scopes[0].Browser;
+    }
+
+    public string Title { get; }
+
+    [ObservableProperty]
+    public partial FileBrowserViewModel Browser { get; set; }
+
+    public IReadOnlyList<ScopeItem> Scopes { get; }
+    public bool HasScopes => Scopes.Count > 1;
 
     public IReadOnlyList<FilterChip> Filters { get; init; } = [];
     public bool HasFilters => Filters.Count > 0;
 
     public IReadOnlyList<SectionLink> Sections { get; init; } = [];
     public bool HasSections => Sections.Count > 0;
+
+    [RelayCommand]
+    private void SelectScope(ScopeItem scope)
+    {
+        foreach (var s in Scopes)
+        {
+            s.IsActive = ReferenceEquals(s, scope);
+        }
+
+        foreach (var f in Filters)
+        {
+            f.IsActive = f.Kinds is null;
+        }
+
+        scope.Browser.ClearSearch();
+        Browser = scope.Browser;
+        Browser.Refresh();
+    }
 
     [RelayCommand]
     private void ApplyFilter(FilterChip chip)
@@ -43,8 +89,13 @@ public sealed partial class FilesPageViewModel(WorkspaceSession session, string 
     [RelayCommand]
     private void OpenSection(SectionLink link) => Browser.NavigateTo(link.Path);
 
+    /// <summary>Games\ holds one folder per game; Roblox\ holds general stuff not tied to a game.</summary>
     public static FilesPageViewModel Roblox(WorkspaceSession s) =>
-        new(s, "Roblox", s.Layout.Roblox, "Roblox")
+        new("Roblox",
+        [
+            new ScopeItem("Games", new FileBrowserViewModel(s, s.Layout.Games, "Games")),
+            new ScopeItem("General", new FileBrowserViewModel(s, s.Layout.Roblox, "Roblox")),
+        ])
         {
             Filters =
             [

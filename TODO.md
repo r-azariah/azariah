@@ -57,6 +57,19 @@ Read this first when picking up the project in a new session.
   Clock starts on the first rendered tick.
 - Old icon showing after an update = Windows icon cache (`ie4uinit.exe -show` or restart).
 
+## Session 4 (v0.5)
+
+- The owner's drive already has a pass system: `<drive>\CLAUDE-START-HERE.md` (index) and
+  `Games\<GAME>\CLAUDE.md` + `PASSES.md` per game. The app now has its own pass at
+  `<drive>\Projects\AZARIAH\` (CLAUDE.md + PASSES.md) and a row in CLAUDE-START-HERE.md.
+  **When the owner says "pass" about the app: update those two files (hand them over as a zip, since
+  cloud sessions can't write to the USB), commit + push, ship the exe.**
+- Drive layout agreed: `Roblox\` = general Roblox stuff (Scripts, Models, Assets, Images, Docs),
+  `Games\<GAME>\` = game-specific. The Roblox page has Games / General scopes.
+- The app no longer recreates standard folders on every launch (only at setup or from Settings).
+- Next for Roblox: show each `Games\<GAME>` as a project (CLAUDE.md status, LATEST place,
+  Old Versions, last pass).
+
 ## Next, in order
 
 0. **UI redesign: follow `docs/DESIGN.md` "Next session: do this".** Start by rendering the

@@ -13,13 +13,17 @@ public sealed class DriveLayout
     public const string VaultFolderName = "Vault";
     public const string FilesFolderName = "Files";
     public const string RobloxFolderName = "Roblox";
+
+    /// <summary>One folder per game (<c>Games\&lt;GAME&gt;</c>, with its CLAUDE.md/PASSES.md passes).
+    /// <c>Roblox\</c> is for general Roblox stuff that isn't tied to one game.</summary>
+    public const string GamesFolderName = "Games";
     public const string TransferFolderName = "Transfer";
     public const string PublicFolderName = "Public";
     public const string SetupKitFolderName = "SetupKit";
 
-    /// <summary>Roblox workspace sub-folders created on initialization.</summary>
+    /// <summary>General (not game-specific) Roblox folders created on initialization.</summary>
     public static readonly IReadOnlyList<string> RobloxSubfolders =
-        ["Places", "Scripts", "Models", "Assets", "Images", "Docs", "Backups", "Exports"];
+        ["Scripts", "Models", "Assets", "Images", "Docs"];
 
     public DriveLayout(string root)
     {
@@ -38,6 +42,7 @@ public sealed class DriveLayout
 
     public string Files => Path.Combine(Root, FilesFolderName);
     public string Roblox => Path.Combine(Root, RobloxFolderName);
+    public string Games => Path.Combine(Root, GamesFolderName);
     public string Transfer => Path.Combine(Root, TransferFolderName);
     public string Public => Path.Combine(Root, PublicFolderName);
     public string SetupKit => Path.Combine(Root, SetupKitFolderName);
@@ -57,6 +62,8 @@ public sealed class DriveLayout
         {
             yield return Path.Combine(Roblox, sub);
         }
+
+        yield return Games;
 
         yield return Transfer;
         yield return Public;

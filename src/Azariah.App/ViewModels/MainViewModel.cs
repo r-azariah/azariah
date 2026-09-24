@@ -55,7 +55,10 @@ public sealed partial class MainViewModel : ViewModelBase
     internal void OpenWorkspace(string root, DriveMarker marker, string? pageKey = null)
     {
         var layout = new DriveLayout(root);
-        DriveInitializer.EnsureFolders(layout);
+
+        // Only the app's own folder. Standard folders are made once at setup (or from Settings),
+        // so anything the owner deletes stays deleted.
+        Directory.CreateDirectory(layout.SystemFolder);
         var session = new WorkspaceSession(layout, marker, _volumes, DialogService, Ui, Shell);
         App.ApplyTheme(session.Settings.Theme);
         var workspace = new WorkspaceViewModel(session);

@@ -26,7 +26,8 @@ public class ShellTests
         Directory.CreateDirectory(root);
         var volumes = new SystemVolumeProvider();
         var marker = new DriveInitializer(volumes).Initialize(root, "AZARIAH");
-        File.WriteAllText(Path.Combine(root, "Roblox", "Places", "Obby Rush.rbxl"), "x");
+        Directory.CreateDirectory(Path.Combine(root, "Games", "Obby Rush"));
+        File.WriteAllText(Path.Combine(root, "Games", "Obby Rush", "Obby Rush (LATEST 2026-09-24).rbxl"), "x");
         File.WriteAllText(Path.Combine(root, "Roblox", "Scripts", "SpawnHandler.luau"), "print('hi')");
         File.WriteAllText(Path.Combine(root, "Files", "Homework notes.md"), "notes");
         Directory.CreateDirectory(Path.Combine(root, "Files", "School"));
