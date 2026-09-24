@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Azariah.Core.Drive;
 using Azariah.Core.Files;
+using Azariah.Core.Launcher;
+using Azariah.Core.Settings;
 
 namespace Azariah.Core.Serialization;
 
@@ -14,4 +16,7 @@ namespace Azariah.Core.Serialization;
     AllowTrailingCommas = true)]
 [JsonSerializable(typeof(DriveMarker))]
 [JsonSerializable(typeof(TrashInfo))]
+[JsonSerializable(typeof(AppSettings))]
+[JsonSerializable(typeof(RecentFilesDocument))]
+[JsonSerializable(typeof(LauncherConfig))]
 public sealed partial class AzariahJsonContext : JsonSerializerContext;

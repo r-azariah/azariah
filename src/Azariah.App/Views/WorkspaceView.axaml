@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.WorkspaceView"
+             x:DataType="vm:WorkspaceViewModel">
+  <Grid ColumnDefinitions="236,*">
+    <!-- Sidebar -->
+    <Border Background="{DynamicResource AzSidebarBrush}" BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="0,0,1,0">
+      <Grid RowDefinitions="Auto,*,Auto" Margin="14,6,14,14">
+        <Border Classes="card" Padding="12" Margin="0,4,0,16">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Width="34" Height="34" CornerRadius="9" Background="{DynamicResource AzAccentSoftBrush}">
+              <mi:MaterialIcon Kind="UsbFlashDrive" Width="18" Height="18" Foreground="{DynamicResource AzAccentBrush}" />
+            </Border>
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+              <TextBlock Text="{Binding DriveName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <Grid ColumnDefinitions="Auto,*">
+                <Ellipse Width="6" Height="6" Fill="{DynamicResource AzSuccessBrush}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                <TextBlock Grid.Column="1" Text="{Binding RootText}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RootText}" />
+              </Grid>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <ListBox Grid.Row="1" Classes="nav" ItemsSource="{Binding NavItems}" SelectedItem="{Binding SelectedNav}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:NavItem">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <mi:MaterialIcon Kind="{Binding Icon}" Width="18" Height="18" />
+                <TextBlock Grid.Column="1" Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" FontWeight="Medium" />
+                <Border Grid.Column="2" Classes="pill" Padding="7,1" IsVisible="{Binding HasBadge}">
+                  <TextBlock Text="{Binding Badge}" FontSize="10" Classes="accent" />
+                </Border>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <TextBlock Grid.Row="2" Classes="faint" FontSize="11" Text="Your drive. Your system." />
+      </Grid>
+    </Border>
+
+    <!-- Page -->
+    <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
+
+    <!-- Drive removed -->
+    <Border Grid.ColumnSpan="2" Background="{DynamicResource AzOverlayBrush}" IsVisible="{Binding IsDisconnected}">
+      <Border Classes="card" Width="420" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="12">
+          <mi:MaterialIcon Kind="UsbFlashDriveOutline" Width="36" Height="36" Foreground="{DynamicResource AzWarningBrush}" HorizontalAlignment="Left" />
+          <TextBlock Classes="h2" Text="Drive disconnected" />
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Plug it back in and AZARIAH picks up where you left off, even if Windows gives it a different letter." />
+        </StackPanel>
+      </Border>
+    </Border>
+  </Grid>
+</UserControl>

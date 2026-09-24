@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dvm="using:Azariah.App.ViewModels.Dialogs"
+             x:Class="Azariah.App.Views.Dialogs.ChoiceDialogView"
+             x:DataType="dvm:ChoiceDialogViewModel">
+  <StackPanel Spacing="14">
+    <TextBlock Classes="h2" Text="{Binding Title}" />
+    <TextBlock Classes="muted" Text="{Binding Message}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Command="{Binding CancelCommand}" />
+      <ItemsControl ItemsSource="{Binding Options}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="dvm:ChoiceOption">
+            <Button Content="{Binding Label}" Classes.primary="{Binding IsPrimary}"
+                    Command="{Binding $parent[ItemsControl].((dvm:ChoiceDialogViewModel)DataContext).ChooseCommand}" CommandParameter="{Binding}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="36,24,36,36" Spacing="28" MaxWidth="1200">
+      <StackPanel Spacing="6">
+        <TextBlock Classes="eyebrow" Text="AZARIAH" />
+        <TextBlock Classes="h1" Text="{Binding Greeting}" FontSize="32" />
+        <TextBlock Classes="muted">
+          <Run Text="{Binding DriveName}" FontWeight="SemiBold" />
+          <Run Text=" is connected at " />
+          <Run Text="{Binding RootText}" />
+          <Run Text=" on " />
+          <Run Text="{Binding MachineName}" />
+        </TextBlock>
+      </StackPanel>
+
+      <UniformGrid Columns="3" ColumnSpacing="14">
+        <!-- Storage -->
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <mi:MaterialIcon Kind="Harddisk" Width="16" Height="16" Foreground="{DynamicResource AzAccentBrush}" />
+              <TextBlock Classes="eyebrow" Text="STORAGE" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding UsedText}" FontSize="26" FontWeight="SemiBold" />
+            <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="6" CornerRadius="3" />
+            <TextBlock Classes="muted" FontSize="12" Text="{Binding CapacityText}" />
+            <TextBlock Classes="faint" FontSize="11" Text="{Binding FileSystemText}" />
+          </StackPanel>
+        </Border>
+        <!-- Vault -->
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <mi:MaterialIcon Kind="ShieldLockOutline" Width="16" Height="16" Foreground="{DynamicResource AzAccentBrush}" />
+              <TextBlock Classes="eyebrow" Text="VAULT" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <mi:MaterialIcon Kind="LockOutline" Width="22" Height="22" />
+              <TextBlock Text="Not set up yet" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                       Text="Encrypted storage arrives next. It locks itself the moment the drive is unplugged." />
+            <Button Classes="ghost" Padding="0" Content="What's coming" Foreground="{DynamicResource AzAccentBrush}"
+                    Command="{Binding GoCommand}" CommandParameter="vault" />
+          </StackPanel>
+        </Border>
+        <!-- This PC -->
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <mi:MaterialIcon Kind="Laptop" Width="16" Height="16" Foreground="{DynamicResource AzAccentBrush}" />
+              <TextBlock Classes="eyebrow" Text="THIS PC" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding MachineName}" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                       Fill="{DynamicResource AzSuccessBrush}" IsVisible="{Binding AutoLaunchOn}" />
+              <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                       Fill="{DynamicResource AzFaintBrush}" IsVisible="{Binding !AutoLaunchOn}" />
+              <TextBlock Classes="muted" FontSize="12" Text="{Binding AutoLaunchText}" />
+            </StackPanel>
+            <TextBlock Classes="faint" FontSize="11" Text="Trusted-device unlock: coming in Phase 3" />
+            <Button Classes="ghost" Padding="0" Content="Auto-launch settings" Foreground="{DynamicResource AzAccentBrush}"
+                    Command="{Binding GoCommand}" CommandParameter="settings" />
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <StackPanel Spacing="12">
+        <TextBlock Classes="eyebrow" Text="QUICK ACCESS" />
+        <ItemsControl ItemsSource="{Binding Shortcuts}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><UniformGrid Columns="4" ColumnSpacing="14" /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:ShortcutTile">
+              <Button Classes="tile" Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).GoCommand}" CommandParameter="{Binding Key}">
+                <StackPanel Spacing="10">
+                  <Border Width="36" Height="36" CornerRadius="10" Background="{DynamicResource AzAccentSoftBrush}" HorizontalAlignment="Left">
+                    <mi:MaterialIcon Kind="{Binding Icon}" Width="20" Height="20" Foreground="{DynamicResource AzAccentBrush}" />
+                  </Border>
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="12" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <StackPanel Spacing="12">
+        <TextBlock Classes="eyebrow" Text="RECENT" />
+        <Border Classes="card" Padding="8">
+          <Panel>
+            <TextBlock Classes="muted" Margin="10" IsVisible="{Binding !HasRecent}"
+                       Text="Files you open in AZARIAH show up here." />
+            <ItemsControl ItemsSource="{Binding Recent}" IsVisible="{Binding HasRecent}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:FileItemViewModel">
+                  <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,8"
+                          Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).OpenRecentCommand}" CommandParameter="{Binding}">
+                    <Button.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Show in Files" Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).ShowRecentInFilesCommand}" CommandParameter="{Binding}" />
+                      </ContextMenu>
+                    </Button.ContextMenu>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <mi:MaterialIcon Kind="{Binding Icon}" Width="18" Height="18" Foreground="{DynamicResource AzMutedBrush}" />
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0">
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding LocationText}" Classes="faint" FontSize="12" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding AgoText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Panel>
+        </Border>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

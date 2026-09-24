@@ -1,0 +1,49 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- AZARIAH palette. Every surface uses these tokens so Dark and Light stay in sync. -->
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="AzWindowBrush" Color="#0A0D12" />
+      <SolidColorBrush x:Key="AzSidebarBrush" Color="#0E1218" />
+      <SolidColorBrush x:Key="AzSurfaceBrush" Color="#131820" />
+      <SolidColorBrush x:Key="AzSurfaceAltBrush" Color="#181E28" />
+      <SolidColorBrush x:Key="AzHoverBrush" Color="#1C2330" />
+      <SolidColorBrush x:Key="AzBorderBrush" Color="#222A36" />
+      <SolidColorBrush x:Key="AzTextBrush" Color="#E7EAF0" />
+      <SolidColorBrush x:Key="AzMutedBrush" Color="#8A93A3" />
+      <SolidColorBrush x:Key="AzFaintBrush" Color="#5A6373" />
+      <SolidColorBrush x:Key="AzAccentBrush" Color="#38BDF8" />
+      <SolidColorBrush x:Key="AzAccentSoftBrush" Color="#1F38BDF8" />
+      <SolidColorBrush x:Key="AzAccentTextBrush" Color="#06131C" />
+      <SolidColorBrush x:Key="AzSuccessBrush" Color="#34D399" />
+      <SolidColorBrush x:Key="AzWarningBrush" Color="#FBBF24" />
+      <SolidColorBrush x:Key="AzDangerBrush" Color="#F87171" />
+      <SolidColorBrush x:Key="AzDangerSoftBrush" Color="#26F87171" />
+      <SolidColorBrush x:Key="AzOverlayBrush" Color="#B3050709" />
+      <SolidColorBrush x:Key="AzSelectionBrush" Color="#2438BDF8" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="AzWindowBrush" Color="#F4F6F9" />
+      <SolidColorBrush x:Key="AzSidebarBrush" Color="#EBEEF3" />
+      <SolidColorBrush x:Key="AzSurfaceBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="AzSurfaceAltBrush" Color="#F7F8FA" />
+      <SolidColorBrush x:Key="AzHoverBrush" Color="#E6EAF0" />
+      <SolidColorBrush x:Key="AzBorderBrush" Color="#DCE1E8" />
+      <SolidColorBrush x:Key="AzTextBrush" Color="#111827" />
+      <SolidColorBrush x:Key="AzMutedBrush" Color="#5B6474" />
+      <SolidColorBrush x:Key="AzFaintBrush" Color="#8C95A4" />
+      <SolidColorBrush x:Key="AzAccentBrush" Color="#0284C7" />
+      <SolidColorBrush x:Key="AzAccentSoftBrush" Color="#1A0284C7" />
+      <SolidColorBrush x:Key="AzAccentTextBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="AzSuccessBrush" Color="#059669" />
+      <SolidColorBrush x:Key="AzWarningBrush" Color="#B45309" />
+      <SolidColorBrush x:Key="AzDangerBrush" Color="#DC2626" />
+      <SolidColorBrush x:Key="AzDangerSoftBrush" Color="#1ADC2626" />
+      <SolidColorBrush x:Key="AzOverlayBrush" Color="#80101318" />
+      <SolidColorBrush x:Key="AzSelectionBrush" Color="#200284C7" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <CornerRadius x:Key="AzCardRadius">12</CornerRadius>
+  <CornerRadius x:Key="AzControlRadius">8</CornerRadius>
+</ResourceDictionary>

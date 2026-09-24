@@ -2,56 +2,56 @@
 
 Read this first when picking up the project in a new session.
 
-## Status: Phase 1 in progress (work-in-progress checkpoint)
+## Where things stand
 
-The solution builds (`dotnet build Azariah.sln`, .NET 10 SDK). There is no UI yet.
+- Solution builds with **zero warnings** (warnings are errors) on the .NET 10 SDK.
+- `dotnet test Azariah.sln`: 38 tests pass (35 core, 3 headless UI incl. rendering every page).
+- `dotnet publish src/Azariah.App -c Release -r win-x64` produces a single portable
+  `Azariah.exe` (~51 MB). Works when cross-built from Linux.
+- Not yet verified on real Windows hardware: auto-launch end to end, Explorer drag-in,
+  system clipboard paste, custom title bar. **Test these first on Windows.**
 
-### Decisions made
-- **Language/runtime:** C# on .NET 10 (LTS).
-- **UI framework:** Avalonia 12 (Fluent theme, custom dark styling, Material icons via
-  `Material.Icons.Avalonia`), MVVM with CommunityToolkit.Mvvm. Reasons: portable self-contained
-  publish that runs from the USB with no install, full control over a custom look, and the UI
-  and logic can be built and tested in CI on any OS. Windows-only features (DPAPI, WinVerifyTrust,
-  USB arrival events) go behind platform interfaces.
-- **Package versions** are pinned centrally in `Directory.Packages.props`.
-- **Drive root** is never hardcoded. It is found by `--root`, `AZARIAH_ROOT`, walking up from the
-  executable to find `.azariah/drive.json`, or scanning mounted volumes for that marker.
-  `DriveType.Removable` is NOT relied on (fast USB sticks often report as fixed disks).
-- **The drive marker is identification, not trust.** Trust comes from Phase 3 crypto pairing.
-- **Deletes go to an on-drive Trash** (`.azariah/Trash`) because Windows has no Recycle Bin for
-  removable drives.
-- **Auto-launch (Phase 4)** must not blindly run the exe found on a USB (a fake USB with the right
-  marker would get code execution). Plan: the launcher runs a verified local copy.
+## Done
 
-### Done (in `src/Azariah.Core`)
-- `Drive/DriveLayout.cs`: well-known folders, root-relative path helpers, protected areas.
-- `Drive/DriveMarker.cs`, `Drive/DriveMarkerStore.cs`: `.azariah/drive.json` identity marker.
-- `Drive/DriveRootLocator.cs`, `Drive/VolumeInfo.cs`: root detection, volume scan, find by drive id.
-- `Drive/DriveMonitor.cs`: detects removal and re-plug (possibly under a new letter).
-- `Drive/DriveSummary.cs`: storage usage numbers.
-- `Files/PathGuard.cs`, `Files/FileNameRules.cs`, `Files/UniqueNames.cs`: path safety and naming.
-- `Files/FileKind.cs`, `Files/FileEntry.cs`, `Files/OperationModels.cs`, `Files/FileOperationException.cs`.
-- `Files/TrashService.cs`: move to Trash, list, restore, delete permanently, empty.
-- `Serialization/JsonFile.cs`: atomic JSON writes. `Serialization/AzariahJsonContext.cs`: source-gen JSON.
-- `Diagnostics/AppLog.cs`: file log with a no-secrets rule.
-- `src/Azariah.AI.Abstractions`: empty project reserved for the Phase 7 provider/permission interfaces.
+- Phase 1 shell: Home, Files, Roblox (kind filters), Setup Kit (sections + banner),
+  Transfer (import/export), Settings, Trash page, Welcome/setup screen, disconnect overlay,
+  dark/light themes, in-window dialogs.
+- Core: drive root detection (no drive letters), drive monitor (re-plug under new letter
+  rebuilds the session), safe file ops (temp-file replace, conflicts, progress, cancel),
+  on-drive Trash, search (text, wildcards, kinds), recent files (relative, never Vault),
+  atomic JSON, no-secrets logging.
+- Phase 4 auto-launch: `Azariah.exe --watch`, local verified copy in
+  `%LOCALAPPDATA%\Programs\Azariah`, HKCU Run entry, per-PC `launcher.json`, Settings toggle,
+  single instance per drive (second launch focuses the window).
+- Run confirmation before opening any executable/script from the app.
+- AI contracts in `src/Azariah.AI.Abstractions` (providers, tools, capabilities, permissions).
+- Docs: README, ARCHITECTURE, SECURITY (Vault + trusted devices + auto-launch), ROADMAP.
 
-### Next steps (in order)
-1. `Files/FileOperationService.cs`: list, create folder, rename, copy/move with conflict policy
-   (KeepBoth/Replace/Skip), safe replace via temp file, progress + cancellation, import/export,
-   move to Trash. `Files/FileSearchService.cs`: recursive search that skips `.azariah` and `Vault`.
-2. `Settings/` (AppSettings + store on the USB), recent files store (root-relative paths, never Vault items),
-   `DriveInitializer` (creates standard folders + marker, refuses the system drive by default).
-3. Setup Kit core (`SetupKit/`): installer sidecar manifests (`<file>.installer.json` with name,
-   version, date downloaded, architecture, official source, optional SHA-256), SHA-256 verify,
-   skills catalog (`SetupKit/Skills/<Tool>/<skill>/`), data-driven tool registry (`SetupKit/tools.json`)
-   with install targets, secret scanner that warns about keys/tokens in Setup Kit files.
-   Installers only launch after an explicit confirmation dialog; never automatically.
-4. AI abstractions: provider interface, content parts (text/image), capability permissions
-   (See Screen, Read USB Files, Read Vault, Open Files, Modify Files, Execute Actions), data sensitivity routing.
-5. `src/Azariah.App` (Avalonia): shell with sidebar (Home, Files, Vault, Passwords, Roblox,
-   Setup Kit, Transfer, AI, Settings), file browser, dialogs, drag and drop, Trash view,
-   placeholders for Vault/Passwords/AI.
-6. Tests (`tests/Azariah.Core.Tests`, headless UI smoke tests).
-7. Docs: README, ARCHITECTURE, SECURITY (Vault + trusted-device model), ROADMAP.
-8. `scripts/publish-usb.ps1`, manual-only GitHub Actions workflow (user asked to avoid surprise costs).
+## Next, in order
+
+1. **Windows smoke test** of the checklist in README "Quick start" and fix anything found.
+2. **Setup Kit v2** (see ROADMAP): installer sidecar manifests + SHA-256 verify + Authenticode
+   check (`WinVerifyTrust`), Installers page, Skills page with install targets from
+   `SetupKit/tools.json`, secret scanner.
+3. **Phase 2 Vault** per SECURITY.md. Pick the Argon2id binding (libsodium-based, maintained),
+   use .NET `AesGcm`. Write format tests before UI. Wire lock into
+   `MainViewModel.OnDisconnected` and `Shutdown` (comments mark the spots).
+4. **Phase 7a**: MCP server exposing drive search / read / open tools, gated by permissions.
+
+## Known limitations
+
+- Dragging files *out* of AZARIAH into Explorer isn't supported yet (drag in and internal
+  drag to folders work).
+- Cut in AZARIAH + paste in Explorer copies instead of moving (system clipboard gets files only).
+- Folder sizes aren't shown in lists (only files).
+- If the exe runs from the USB (not the auto-launch copy) and the drive is yanked, Windows may
+  kill the app. No data loss: all writes are atomic or temp-then-swap.
+- The exe isn't code-signed, so SmartScreen warns on first run.
+
+## Conventions
+
+- Stored paths are drive-relative. Never persist absolute drive paths on the USB.
+- All file changes go through `FileOperationService` (or `TrashService`).
+- No secrets in logs, recent files, settings, Setup Kit, or git.
+- Package versions live in `Directory.Packages.props`.
+- Avalonia build telemetry: set `AVALONIA_TELEMETRY_OPTOUT=1` when building.

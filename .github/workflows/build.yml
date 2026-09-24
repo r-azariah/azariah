@@ -1,0 +1,30 @@
+# Manual only: nothing runs (or uses Actions minutes) unless you click "Run workflow".
+name: Build AZARIAH
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AVALONIA_TELEMETRY_OPTOUT: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test
+        run: dotnet test Azariah.sln -c Release
+      - name: Publish Windows exe
+        run: dotnet publish src/Azariah.App -c Release -r win-x64 -o publish/win-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Azariah-win-x64
+          path: publish/win-x64/Azariah.exe
+          retention-days: 14

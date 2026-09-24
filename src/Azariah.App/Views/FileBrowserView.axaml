@@ -1,0 +1,231 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.FileBrowserView"
+             x:DataType="vm:FileBrowserViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="F2" Command="{Binding RenameCommand}" />
+    <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
+    <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyCommand}" />
+    <KeyBinding Gesture="Ctrl+X" Command="{Binding CutCommand}" />
+    <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding NewFolderCommand}" />
+    <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}" />
+    <KeyBinding Gesture="Alt+Left" Command="{Binding BackCommand}" />
+    <KeyBinding Gesture="Alt+Right" Command="{Binding ForwardCommand}" />
+    <KeyBinding Gesture="Alt+Up" Command="{Binding UpCommand}" />
+  </UserControl.KeyBindings>
+
+  <UserControl.Styles>
+    <Style Selector="mi|MaterialIcon.folder">
+      <Setter Property="Foreground" Value="{DynamicResource AzAccentBrush}" />
+    </Style>
+    <Style Selector="mi|MaterialIcon.file">
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+    </Style>
+    <Style Selector="Button.header">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0,4" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource AzFaintBrush}" />
+    </Style>
+    <Style Selector="Button.crumb">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6,4" />
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+    </Style>
+    <Style Selector="Button.crumb.last">
+      <Setter Property="Foreground" Value="{DynamicResource AzTextBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="card" Padding="0">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+      <!-- Navigation + breadcrumbs + search -->
+      <Grid ColumnDefinitions="Auto,*,260" Margin="10,10,12,6">
+        <StackPanel Orientation="Horizontal" Spacing="2">
+          <Button Classes="tool" Command="{Binding BackCommand}" ToolTip.Tip="Back (Alt+Left)"><mi:MaterialIcon Kind="ArrowLeft" /></Button>
+          <Button Classes="tool" Command="{Binding ForwardCommand}" ToolTip.Tip="Forward (Alt+Right)"><mi:MaterialIcon Kind="ArrowRight" /></Button>
+          <Button Classes="tool" Command="{Binding UpCommand}" ToolTip.Tip="Up (Alt+Up)"><mi:MaterialIcon Kind="ArrowUp" /></Button>
+          <Button Classes="tool" Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh (F5)"><mi:MaterialIcon Kind="Refresh" /></Button>
+        </StackPanel>
+        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Margin="8,0">
+          <ItemsControl ItemsSource="{Binding Breadcrumbs}" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:BreadcrumbItem">
+                <StackPanel Orientation="Horizontal">
+                  <Button Classes="crumb" Classes.last="{Binding IsLast}" Content="{Binding Label}"
+                          Command="{Binding $parent[ItemsControl].((vm:FileBrowserViewModel)DataContext).GoToBreadcrumbCommand}" CommandParameter="{Binding}" />
+                  <mi:MaterialIcon Kind="ChevronRight" Width="14" Height="14" Foreground="{DynamicResource AzFaintBrush}" IsVisible="{Binding !IsLast}" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <TextBox Grid.Column="2" x:Name="SearchBox" Text="{Binding SearchText}" PlaceholderText="Search this folder  (Enter)" Padding="30,6,8,6">
+          <TextBox.KeyBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" />
+            <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
+          </TextBox.KeyBindings>
+        </TextBox>
+        <mi:MaterialIcon Grid.Column="2" Kind="Magnify" Width="16" Height="16" Margin="9,0,0,0" HorizontalAlignment="Left"
+                         Foreground="{DynamicResource AzFaintBrush}" IsHitTestVisible="False" />
+      </Grid>
+
+      <!-- Commands -->
+      <Border Grid.Row="1" BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="0,0,0,1" Padding="10,0,10,6">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Orientation="Horizontal" Spacing="2">
+            <Button Classes="tool" Command="{Binding NewFolderCommand}" ToolTip.Tip="New folder (Ctrl+Shift+N)">
+              <StackPanel Orientation="Horizontal" Spacing="6"><mi:MaterialIcon Kind="FolderPlusOutline" /><TextBlock Text="New folder" /></StackPanel>
+            </Button>
+            <Rectangle Width="1" Height="18" Fill="{DynamicResource AzBorderBrush}" Margin="6,0" />
+            <Button Classes="tool" Command="{Binding RenameCommand}" ToolTip.Tip="Rename (F2)"><mi:MaterialIcon Kind="RenameBox" /></Button>
+            <Button Classes="tool" Command="{Binding CopyCommand}" ToolTip.Tip="Copy (Ctrl+C)"><mi:MaterialIcon Kind="ContentCopy" /></Button>
+            <Button Classes="tool" Command="{Binding CutCommand}" ToolTip.Tip="Cut (Ctrl+X)"><mi:MaterialIcon Kind="ContentCut" /></Button>
+            <Button Classes="tool" Command="{Binding PasteCommand}" ToolTip.Tip="Paste (Ctrl+V)"><mi:MaterialIcon Kind="ContentPaste" /></Button>
+            <Button Classes="tool" Command="{Binding DeleteCommand}" ToolTip.Tip="Move to Trash (Delete)"><mi:MaterialIcon Kind="TrashCanOutline" /></Button>
+            <Rectangle Width="1" Height="18" Fill="{DynamicResource AzBorderBrush}" Margin="6,0" />
+            <Button Classes="tool" Command="{Binding RevealCommand}" ToolTip.Tip="Show in Windows Explorer"><mi:MaterialIcon Kind="OpenInNew" /></Button>
+            <Button Classes="tool" Command="{Binding OpenCurrentInExplorerCommand}" ToolTip.Tip="Open this folder in Windows Explorer"><mi:MaterialIcon Kind="FolderOpenOutline" /></Button>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <Border Classes="pill" IsVisible="{Binding FilterLabel, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Center">
+              <TextBlock FontSize="11" Classes="accent" Text="{Binding FilterLabel}" />
+            </Border>
+            <Button Classes="tool" Command="{Binding ToggleDetailsCommand}" ToolTip.Tip="Details panel"><mi:MaterialIcon Kind="InformationOutline" /></Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Column headers -->
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="12,6,12,0">
+        <Grid ColumnDefinitions="38,*,170,130,90" Margin="10,0">
+          <Button Grid.Column="1" Classes="header" Content="Name" Command="{Binding SortByCommand}" CommandParameter="{x:Static vm:SortColumn.Name}" />
+          <Button Grid.Column="2" Classes="header" Content="Date modified" Command="{Binding SortByCommand}" CommandParameter="{x:Static vm:SortColumn.Modified}" />
+          <Button Grid.Column="3" Classes="header" Content="Type" Command="{Binding SortByCommand}" CommandParameter="{x:Static vm:SortColumn.Type}" />
+          <Button Grid.Column="4" Classes="header" Content="Size" HorizontalContentAlignment="Right" Command="{Binding SortByCommand}" CommandParameter="{x:Static vm:SortColumn.Size}" />
+        </Grid>
+        <Panel Grid.Column="1" Width="{Binding #DetailsPane.Bounds.Width}" IsVisible="{Binding ShowDetails}" />
+      </Grid>
+
+      <!-- List + details -->
+      <Grid Grid.Row="3" ColumnDefinitions="*,Auto">
+        <Panel>
+          <ListBox x:Name="List" Classes="files" Margin="8,0,8,4"
+                   ItemsSource="{Binding Items}" Selection="{Binding Selection}" SelectionMode="Multiple"
+                   DragDrop.AllowDrop="True">
+            <ListBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Open" Command="{Binding OpenItemCommand}" InputGesture="Enter" />
+                <MenuItem Header="Rename" Command="{Binding RenameCommand}" InputGesture="F2" />
+                <Separator />
+                <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGesture="Ctrl+C" />
+                <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
+                <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
+                <Separator />
+                <MenuItem Header="Move to Trash" Command="{Binding DeleteCommand}" InputGesture="Delete" />
+                <Separator />
+                <MenuItem Header="Show in Windows Explorer" Command="{Binding RevealCommand}" />
+                <MenuItem Header="New folder" Command="{Binding NewFolderCommand}" InputGesture="Ctrl+Shift+N" />
+              </ContextMenu>
+            </ListBox.ContextMenu>
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:FileItemViewModel">
+                <Grid ColumnDefinitions="38,*,170,130,90" Background="Transparent">
+                  <mi:MaterialIcon Width="20" Height="20" HorizontalAlignment="Left" Kind="{Binding Icon}"
+                                   Classes.folder="{Binding IsFolder}" Classes.file="{Binding !IsFolder}" />
+                  <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding LocationText}" Classes="faint" FontSize="11" TextTrimming="CharacterEllipsis" IsVisible="{Binding ShowLocation}" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding ModifiedText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding TypeText}" Classes="muted" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="4" Text="{Binding SizeText}" Classes="muted" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" IsHitTestVisible="False">
+            <mi:MaterialIcon Kind="FolderOpenOutline" Width="40" Height="40" Foreground="{DynamicResource AzFaintBrush}" />
+            <TextBlock Classes="muted" Text="{Binding EmptyText}" />
+          </StackPanel>
+        </Panel>
+
+        <Border x:Name="DetailsPane" Grid.Column="1" Width="270" IsVisible="{Binding ShowDetails}"
+                BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="1,0,0,0" Padding="18,6,18,12">
+          <Panel>
+            <StackPanel Spacing="4" IsVisible="{Binding Details, Converter={x:Static ObjectConverters.IsNull}}" Margin="0,8,0,0">
+              <TextBlock Classes="eyebrow" Text="DETAILS" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="Select one item to see its details. Drag files in from Explorer to copy them here." />
+            </StackPanel>
+            <ScrollViewer IsVisible="{Binding Details, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Spacing="12" Margin="0,8,0,0" DataContext="{Binding Details}" x:DataType="vm:FileItemViewModel">
+                <Border Width="56" Height="56" CornerRadius="14" Background="{DynamicResource AzAccentSoftBrush}" HorizontalAlignment="Left">
+                  <mi:MaterialIcon Kind="{Binding Icon}" Width="28" Height="28" Foreground="{DynamicResource AzAccentBrush}" />
+                </Border>
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" TextWrapping="Wrap" />
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="eyebrow" Text="TYPE" />
+                  <TextBlock Text="{Binding TypeText}" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="2" IsVisible="{Binding !IsFolder}">
+                  <TextBlock Classes="eyebrow" Text="SIZE" />
+                  <TextBlock Text="{Binding SizeText}" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="eyebrow" Text="MODIFIED" />
+                  <TextBlock Text="{Binding ModifiedText}" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="eyebrow" Text="CREATED" />
+                  <TextBlock Text="{Binding CreatedText}" FontSize="12" />
+                </StackPanel>
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="eyebrow" Text="LOCATION" />
+                  <TextBlock Text="{Binding LocationText}" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Spacing="6" IsVisible="{Binding !IsFolder}">
+                  <TextBlock Classes="eyebrow" Text="SHA-256" />
+                  <SelectableTextBlock Text="{Binding Sha256}" FontFamily="Consolas, Cascadia Mono, monospace" FontSize="11" TextWrapping="Wrap"
+                                       IsVisible="{Binding Sha256, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Button Content="Compute checksum" HorizontalAlignment="Left" FontSize="12"
+                          IsVisible="{Binding Sha256, Converter={x:Static ObjectConverters.IsNull}}"
+                          IsEnabled="{Binding !IsHashing}"
+                          Command="{Binding $parent[UserControl].((vm:FileBrowserViewModel)DataContext).ComputeHashCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </ScrollViewer>
+          </Panel>
+        </Border>
+      </Grid>
+
+      <!-- Status bar -->
+      <Border Grid.Row="4" BorderBrush="{DynamicResource AzBorderBrush}" BorderThickness="0,1,0,0" Padding="16,8">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <TextBlock Classes="muted" FontSize="12" Text="{Binding ItemCountText}" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="16,0" IsVisible="{Binding HasStatus}" VerticalAlignment="Center">
+            <TextBlock FontSize="12" Text="{Binding StatusMessage}" Classes.danger="{Binding StatusIsError}" Classes.muted="{Binding !StatusIsError}" TextTrimming="CharacterEllipsis" />
+            <Button Classes="ghost" Padding="4,0" Command="{Binding DismissStatusCommand}" VerticalAlignment="Center">
+              <mi:MaterialIcon Kind="Close" Width="12" Height="12" />
+            </Button>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsBusy}">
+            <TextBlock FontSize="12" Classes="muted" Text="{Binding ProgressText}" MaxWidth="360" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            <ProgressBar Width="160" Height="6" Value="{Binding ProgressPercent}" Maximum="100" VerticalAlignment="Center" />
+            <Button Content="Cancel" FontSize="12" Padding="10,3" Command="{Binding CancelOperationCommand}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

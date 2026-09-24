@@ -39,3 +39,14 @@ dotnet_diagnostic.CA1515.severity = none
 dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA2000.severity = none
+
+# UI project: members bound from XAML must be instance members, and view models/services
+# live for the whole app session, so these rules are noise there.
+[src/Azariah.App/**.cs]
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1001.severity = none
+dotnet_diagnostic.CA1859.severity = none
+
+[tests/**.cs]
+# Tests are short-lived; threading the xUnit cancellation token everywhere adds noise.
+dotnet_diagnostic.xUnit1051.severity = none

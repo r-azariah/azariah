@@ -1,0 +1,46 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             xmlns:dvm="using:Azariah.App.ViewModels.Dialogs"
+             xmlns:v="using:Azariah.App.Views"
+             xmlns:dv="using:Azariah.App.Views.Dialogs"
+             x:Class="Azariah.App.App"
+             Name="AZARIAH"
+             RequestedThemeVariant="Dark">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Azariah/Theme/Colors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <!-- Explicit view mapping (no reflection), so publishing stays predictable. -->
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:WelcomeViewModel"><v:WelcomeView /></DataTemplate>
+    <DataTemplate DataType="vm:WorkspaceViewModel"><v:WorkspaceView /></DataTemplate>
+    <DataTemplate DataType="vm:HomeViewModel"><v:HomeView /></DataTemplate>
+    <DataTemplate DataType="vm:FilesPageViewModel"><v:FilesPageView /></DataTemplate>
+    <DataTemplate DataType="vm:FileBrowserViewModel"><v:FileBrowserView /></DataTemplate>
+    <DataTemplate DataType="vm:ComingSoonViewModel"><v:ComingSoonView /></DataTemplate>
+    <DataTemplate DataType="vm:AiViewModel"><v:AiView /></DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
+    <DataTemplate DataType="vm:TrashViewModel"><v:TrashView /></DataTemplate>
+    <DataTemplate DataType="dvm:ConfirmDialogViewModel"><dv:ConfirmDialogView /></DataTemplate>
+    <DataTemplate DataType="dvm:PromptDialogViewModel"><dv:PromptDialogView /></DataTemplate>
+    <DataTemplate DataType="dvm:ChoiceDialogViewModel"><dv:ChoiceDialogView /></DataTemplate>
+  </Application.DataTemplates>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" Accent="#38BDF8" RegionColor="#0A0D12" ErrorText="#F87171" />
+        <ColorPaletteResources x:Key="Light" Accent="#0284C7" RegionColor="#F4F6F9" ErrorText="#DC2626" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <mi:MaterialIconStyles />
+    <StyleInclude Source="avares://Azariah/Theme/Styles.axaml" />
+  </Application.Styles>
+</Application>

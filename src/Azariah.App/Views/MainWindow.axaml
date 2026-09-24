@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Azariah.App.ViewModels"
+        x:Class="Azariah.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding WindowTitle}"
+        Icon="/Assets/azariah.ico"
+        Width="1280" Height="800" MinWidth="900" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="38">
+  <Grid RowDefinitions="38,*">
+    <!-- Title strip (drag area). Windows draws its caption buttons on the right. -->
+    <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+      <Image Source="/Assets/azariah-256.png" Width="18" Height="18" />
+      <TextBlock Text="AZARIAH" FontWeight="SemiBold" FontSize="12" LetterSpacing="2.5" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <ContentControl Grid.Row="1" Content="{Binding Current}" />
+
+    <!-- Dialog overlay -->
+    <Border Grid.RowSpan="2" Background="{DynamicResource AzOverlayBrush}"
+            IsVisible="{Binding Dialogs.Active, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Border Classes="card" MaxWidth="560" MinWidth="380" Margin="24" Padding="24"
+              HorizontalAlignment="Center" VerticalAlignment="Center"
+              BoxShadow="0 16 48 0 #66000000">
+        <ContentControl Content="{Binding Dialogs.Active}" />
+      </Border>
+    </Border>
+  </Grid>
+</Window>

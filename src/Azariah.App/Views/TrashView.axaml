@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             x:Class="Azariah.App.Views.TrashView"
+             x:DataType="vm:TrashViewModel">
+  <Grid RowDefinitions="Auto,*" Margin="28,16,28,16">
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+      <Button Classes="tool" Command="{Binding BackCommand}" Margin="0,0,8,0" VerticalAlignment="Center"><mi:MaterialIcon Kind="ArrowLeft" /></Button>
+      <Border Grid.Column="1" Width="40" Height="40" CornerRadius="11" Background="{DynamicResource AzAccentSoftBrush}">
+        <mi:MaterialIcon Kind="TrashCanOutline" Width="22" Height="22" Foreground="{DynamicResource AzAccentBrush}" />
+      </Border>
+      <StackPanel Grid.Column="2" Margin="14,0,0,0" VerticalAlignment="Center">
+        <TextBlock Classes="h2" Text="Trash" />
+        <TextBlock Classes="muted" FontSize="12" Text="{Binding Summary}" />
+      </StackPanel>
+      <Button Grid.Column="3" Classes="danger" Content="Empty Trash" Command="{Binding EmptyTrashCommand}" IsEnabled="{Binding !IsEmpty}" />
+    </Grid>
+    <Border Grid.Row="1" Classes="card" Padding="8" Margin="0,16,0,0">
+      <Panel>
+        <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+          <mi:MaterialIcon Kind="TrashCanOutline" Width="40" Height="40" Foreground="{DynamicResource AzFaintBrush}" />
+          <TextBlock Classes="muted" Text="Nothing in Trash." />
+        </StackPanel>
+        <ListBox Classes="files" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" IsVisible="{Binding !IsEmpty}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:TrashItemViewModel">
+              <Grid ColumnDefinitions="38,*,200,110,90,Auto">
+                <mi:MaterialIcon Kind="{Binding Icon}" Width="20" Height="20" HorizontalAlignment="Left" Foreground="{DynamicResource AzMutedBrush}" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding OriginalLocation}" Classes="muted" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="3" Text="{Binding DeletedText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="4" Text="{Binding SizeText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4">
+                  <Button Classes="tool" ToolTip.Tip="Restore" Command="{Binding $parent[ListBox].((vm:TrashViewModel)DataContext).RestoreCommand}" CommandParameter="{Binding}">
+                    <mi:MaterialIcon Kind="Restore" />
+                  </Button>
+                  <Button Classes="tool" ToolTip.Tip="Delete forever" Command="{Binding $parent[ListBox].((vm:TrashViewModel)DataContext).DeleteForeverCommand}" CommandParameter="{Binding}">
+                    <mi:MaterialIcon Kind="DeleteForeverOutline" />
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Panel>
+    </Border>
+  </Grid>
+</UserControl>
