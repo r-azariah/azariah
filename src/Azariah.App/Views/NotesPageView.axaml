@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="using:System"
              xmlns:vm="using:Azariah.App.ViewModels"
              x:Class="Azariah.App.Views.NotesPageView"
              x:DataType="vm:NotesPageViewModel">
@@ -29,6 +30,66 @@
       <Setter Property="FontSize" Value="12" />
       <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
     </Style>
+
+    <!-- Subtle dividers between the note list, editor and rail. -->
+    <Style Selector="Border.pane">
+      <Setter Property="BorderBrush" Value="{DynamicResource AzBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1,0,1,0" />
+      <Setter Property="Padding" Value="20,0,20,0" />
+    </Style>
+    <Style Selector="Border.tagbar">
+      <Setter Property="Background" Value="{DynamicResource AzAccentSoftBrush}" />
+      <Setter Property="CornerRadius" Value="{StaticResource AzControlRadius}" />
+      <Setter Property="Padding" Value="10,3" />
+    </Style>
+
+    <!-- Link / tag chips -->
+    <Style Selector="Button.chip">
+      <Setter Property="Background" Value="{DynamicResource AzSurfaceAltBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AzBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="10,3" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Margin" Value="0,0,6,6" />
+    </Style>
+    <Style Selector="Button.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AzHoverBrush}" />
+    </Style>
+    <Style Selector="Button.chip.missing">
+      <Setter Property="Foreground" Value="{DynamicResource AzFaintBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AzFaintBrush}" />
+    </Style>
+
+    <!-- Linked-mention rows -->
+    <Style Selector="Button.linkrow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Button.linkrow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AzHoverBrush}" />
+    </Style>
+
+    <!-- Graph dots -->
+    <Style Selector="Button.graphnode">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Button.graphnode:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Ellipse.dot">
+      <Setter Property="Fill" Value="{DynamicResource AzMutedBrush}" />
+    </Style>
+    <Style Selector="Ellipse.dot.center">
+      <Setter Property="Fill" Value="{DynamicResource AzAccentBrush}" />
+    </Style>
+    <Style Selector="Button.graphnode:pointerover Ellipse.dot">
+      <Setter Property="Fill" Value="{DynamicResource AzAccentBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*" Margin="24,24,28,20">
@@ -41,10 +102,17 @@
       </StackPanel>
     </StackPanel>
 
-    <Grid Grid.Row="1" Margin="0,18,0,0" ColumnDefinitions="260,36,*">
-      <Grid RowDefinitions="Auto,*">
+    <Grid Grid.Row="1" Margin="0,18,0,0" ColumnDefinitions="260,*,300">
+      <!-- Note list -->
+      <Grid RowDefinitions="Auto,Auto,*" Margin="0,0,18,0">
         <TextBox Text="{Binding Search}" Watermark="Search notes" Margin="0,0,0,10" />
-        <ListBox Grid.Row="1" Classes="nav" ItemsSource="{Binding Notes}" SelectedItem="{Binding Selected}">
+        <Border Grid.Row="1" Classes="tagbar" Margin="0,0,0,10" IsVisible="{Binding HasActiveTag}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock VerticalAlignment="Center" FontSize="12" Text="{Binding ActiveTag}" />
+            <Button Grid.Column="1" Classes="ghost small" Content="Clear" Command="{Binding ClearTagCommand}" />
+          </Grid>
+        </Border>
+        <ListBox Grid.Row="2" Classes="nav" ItemsSource="{Binding Notes}" SelectedItem="{Binding Selected}">
           <ListBox.ItemTemplate>
             <DataTemplate DataType="vm:NoteItemViewModel">
               <StackPanel Spacing="1">
@@ -57,22 +125,130 @@
         </ListBox>
       </Grid>
 
-      <StackPanel Grid.Column="2" Spacing="12" IsVisible="{Binding !HasSelection}">
-        <TextBlock Classes="muted" Text="No notes yet." />
-        <Button Content="New note" Command="{Binding NewNoteCommand}" HorizontalAlignment="Left" Padding="14,8" />
-      </StackPanel>
+      <!-- Editor -->
+      <Border Grid.Column="1" Classes="pane">
+        <Panel>
+          <StackPanel Spacing="12" VerticalAlignment="Top" IsVisible="{Binding !HasSelection}">
+            <TextBlock Classes="muted" Text="No notes yet." />
+            <Button Content="New note" Command="{Binding NewNoteCommand}" HorizontalAlignment="Left" Padding="14,8" />
+          </StackPanel>
 
-      <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*" IsVisible="{Binding HasSelection}">
-        <TextBox x:Name="TitleBox" Classes="bare title" Text="{Binding Title}" />
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="2,0,0,12">
-          <TextBlock Classes="faint" FontSize="12" Text="{Binding Selected.Detail}" VerticalAlignment="Center" />
-          <Button Classes="ghost small" Content="Delete" Command="{Binding DeleteNoteCommand}" />
-          <TextBlock Classes="danger" FontSize="12" Text="{Binding Status}" IsVisible="{Binding HasStatus}" VerticalAlignment="Center" />
+          <Grid RowDefinitions="Auto,Auto,*,Auto" IsVisible="{Binding HasSelection}">
+            <TextBox x:Name="TitleBox" Classes="bare title" Text="{Binding Title}" />
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="2,0,0,12">
+              <TextBlock Classes="faint" FontSize="12" Text="{Binding Selected.Detail}" VerticalAlignment="Center" />
+              <Button Classes="ghost small" Content="Delete" Command="{Binding DeleteNoteCommand}" />
+              <TextBlock Classes="danger" FontSize="12" Text="{Binding Status}" IsVisible="{Binding HasStatus}" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBox x:Name="Editor" Grid.Row="2" Classes="bare editor" Text="{Binding Text}"
+                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                     Watermark="Write something. Link notes with [[double brackets]], label with #tags." />
+            <TextBlock Grid.Row="3" Classes="faint" FontSize="11" Text="{Binding WordCountText}" Margin="2,8,0,0" />
+          </Grid>
+        </Panel>
+      </Border>
+
+      <!-- Connections rail -->
+      <ScrollViewer Grid.Column="2" Margin="18,0,0,0" VerticalScrollBarVisibility="Auto" IsVisible="{Binding HasSelection}">
+        <StackPanel Spacing="20">
+          <StackPanel Spacing="8" IsVisible="{Binding HasGraph}">
+            <TextBlock Classes="eyebrow" Text="GRAPH" />
+            <Border Classes="card" Padding="0">
+              <Grid Width="280" Height="232" HorizontalAlignment="Center">
+                <ItemsControl ItemsSource="{Binding GraphEdges}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:GraphEdge">
+                      <Line StartPoint="{Binding Start}" EndPoint="{Binding End}"
+                            Stroke="{DynamicResource AzBorderBrush}" StrokeThickness="1" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding GraphNodes}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.Styles>
+                    <Style Selector="ContentPresenter" x:DataType="vm:GraphNode">
+                      <Setter Property="Canvas.Left" Value="{Binding Left}" />
+                      <Setter Property="Canvas.Top" Value="{Binding Top}" />
+                    </Style>
+                  </ItemsControl.Styles>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:GraphNode">
+                      <Button Classes="graphnode" Width="84"
+                              Command="{Binding $parent[UserControl].((vm:NotesPageViewModel)DataContext).OpenGraphNodeCommand}"
+                              CommandParameter="{Binding}">
+                        <StackPanel Spacing="3">
+                          <Ellipse Classes="dot" Classes.center="{Binding IsCenter}"
+                                   Width="{Binding Diameter}" Height="{Binding Diameter}" HorizontalAlignment="Center" />
+                          <TextBlock Text="{Binding Title}" FontSize="10" TextAlignment="Center"
+                                     MaxWidth="82" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource AzMutedBrush}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Grid>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8" IsVisible="{Binding HasLinks}">
+            <TextBlock Classes="eyebrow" Text="LINKS" />
+            <ItemsControl ItemsSource="{Binding Links}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NoteLinkItem">
+                  <Button Classes="chip" Classes.missing="{Binding !Exists}" Content="{Binding Title}"
+                          Command="{Binding $parent[UserControl].((vm:NotesPageViewModel)DataContext).OpenLinkCommand}"
+                          CommandParameter="{Binding}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsVisible="{Binding HasBacklinks}">
+            <TextBlock Classes="eyebrow" Text="LINKED MENTIONS" />
+            <ItemsControl ItemsSource="{Binding Backlinks}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NoteItemViewModel">
+                  <Button Classes="linkrow" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                          Command="{Binding $parent[UserControl].((vm:NotesPageViewModel)DataContext).OpenNoteCommand}"
+                          CommandParameter="{Binding}">
+                    <StackPanel Spacing="1">
+                      <TextBlock Text="{Binding Title}" FontSize="13" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Preview}" IsVisible="{Binding HasPreview}" Classes="faint" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="8" IsVisible="{Binding HasTags}">
+            <TextBlock Classes="eyebrow" Text="TAGS" />
+            <ItemsControl ItemsSource="{Binding Tags}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="sys:String">
+                  <Button Classes="chip" Content="{Binding}"
+                          Command="{Binding $parent[UserControl].((vm:NotesPageViewModel)DataContext).ToggleTagCommand}"
+                          CommandParameter="{Binding}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock Classes="faint" FontSize="12" TextWrapping="Wrap" IsVisible="{Binding !HasConnections}"
+                     Text="No links yet. Type [[a note name]] to connect notes, or #tag to label them." />
         </StackPanel>
-        <TextBox x:Name="Editor" Grid.Row="2" Classes="bare editor" Text="{Binding Text}"
-                 AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
-                 Watermark="Write something" />
-      </Grid>
+      </ScrollViewer>
     </Grid>
   </Grid>
 </UserControl>

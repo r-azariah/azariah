@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia;
 using Azariah.App.Services;
 using Azariah.Core.Files;
 using Azariah.Core.Notes;
@@ -23,13 +24,32 @@ public sealed partial class NoteItemViewModel(NoteInfo info) : ObservableObject
     }
 }
 
+/// <summary>A <c>[[link]]</c> shown as a chip. Missing targets are drawn faint and create the note when clicked.</summary>
+public sealed record NoteLinkItem(string Title, string? Path, bool Exists);
+
+/// <summary>One line of the local graph, in canvas coordinates.</summary>
+public sealed record GraphEdge(Point Start, Point End);
+
+/// <summary>One dot of the local graph. <see cref="Left"/>/<see cref="Top"/> place its fixed-width cell on the canvas.</summary>
+public sealed record GraphNode(string? Path, string Title, double Left, double Top, double Diameter, bool IsCenter);
+
 /// <summary>
 /// Notes: Markdown files in <c>Notes\</c> (Obsidian's layout). Typing saves on its own after a short
 /// pause, and whenever you switch notes or pages. The file name is the title, as in Obsidian.
+/// <c>[[wiki links]]</c> connect notes; the right rail shows outgoing links, linked mentions, tags and a
+/// small graph of the current note's neighbourhood.
 /// </summary>
 public sealed partial class NotesPageViewModel : ViewModelBase
 {
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(400);
+
+    // Local-graph canvas. The center note sits in the middle; direct neighbours ring it.
+    private const double GraphWidth = 280;
+    private const double GraphHeight = 232;
+    private const double GraphRadius = 74;
+    private const double CellWidth = 84;
+    private const double CenterDiameter = 16;
+    private const double NodeDiameter = 11;
 
     private readonly WorkspaceSession _s;
     private readonly WorkspaceViewModel _workspace;
@@ -47,11 +67,36 @@ public sealed partial class NotesPageViewModel : ViewModelBase
 
     public ObservableCollection<NoteItemViewModel> Notes { get; } = [];
 
+    /// <summary>Outgoing <c>[[links]]</c> from the current note.</summary>
+    public ObservableCollection<NoteLinkItem> Links { get; } = [];
+
+    /// <summary>Notes that link to the current note.</summary>
+    public ObservableCollection<NoteItemViewModel> Backlinks { get; } = [];
+
+    /// <summary><c>#tags</c> in the current note.</summary>
+    public ObservableCollection<string> Tags { get; } = [];
+
+    public ObservableCollection<GraphNode> GraphNodes { get; } = [];
+    public ObservableCollection<GraphEdge> GraphEdges { get; } = [];
+
     public bool HasNotes => Notes.Count > 0;
 
     public bool HasSelection => Selected is not null;
 
     public bool HasStatus => !string.IsNullOrEmpty(Status);
+
+    public bool HasLinks => Links.Count > 0;
+
+    public bool HasBacklinks => Backlinks.Count > 0;
+
+    public bool HasTags => Tags.Count > 0;
+
+    /// <summary>A graph is worth showing only once the current note actually connects to something.</summary>
+    public bool HasGraph => GraphNodes.Count > 1;
+
+    public bool HasConnections => HasLinks || HasBacklinks || HasTags;
+
+    public bool HasActiveTag => !string.IsNullOrEmpty(ActiveTag);
 
     [ObservableProperty]
     public partial NoteItemViewModel? Selected { get; set; }
@@ -68,6 +113,13 @@ public sealed partial class NotesPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? Status { get; set; }
 
+    [ObservableProperty]
+    public partial string WordCountText { get; set; } = string.Empty;
+
+    /// <summary>When set, the note list is filtered to notes carrying this tag.</summary>
+    [ObservableProperty]
+    public partial string? ActiveTag { get; set; }
+
     /// <summary>A new note wants its title typed; a daily note wants the cursor at the end.</summary>
     public event EventHandler? TitleFocusRequested;
 
@@ -80,7 +132,14 @@ public sealed partial class NotesPageViewModel : ViewModelBase
         IReadOnlyList<NoteInfo> list;
         try
         {
-            list = Search.Trim().Length > 0 ? _s.Notes.Search(Search) : _s.Notes.List();
+            if (ActiveTag is { } tag)
+            {
+                list = _s.Notes.ByTag(tag);
+            }
+            else
+            {
+                list = Search.Trim().Length > 0 ? _s.Notes.Search(Search) : _s.Notes.List();
+            }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -95,6 +154,7 @@ public sealed partial class NotesPageViewModel : ViewModelBase
 
         Selected = Notes.FirstOrDefault(n => keep is not null && PathGuard.AreSame(n.Path, keep)) ?? Notes.FirstOrDefault();
         OnPropertyChanged(nameof(HasNotes));
+        RefreshConnections();
     }
 
     public void Select(string path)
@@ -104,6 +164,7 @@ public sealed partial class NotesPageViewModel : ViewModelBase
         {
             _loading = true;
             Search = string.Empty;
+            ActiveTag = null;
             _loading = false;
             Refresh();
             item = Notes.FirstOrDefault(n => PathGuard.AreSame(n.Path, path));
@@ -154,11 +215,14 @@ public sealed partial class NotesPageViewModel : ViewModelBase
             _loading = false;
         }
 
+        UpdateWordCount();
+        RefreshConnections();
         OnPropertyChanged(nameof(HasSelection));
     }
 
     partial void OnTextChanged(string value)
     {
+        UpdateWordCount();
         if (_loading || _currentPath is null)
         {
             return;
@@ -171,6 +235,15 @@ public sealed partial class NotesPageViewModel : ViewModelBase
 
     partial void OnSearchChanged(string value)
     {
+        if (!_loading)
+        {
+            Refresh();
+        }
+    }
+
+    partial void OnActiveTagChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasActiveTag));
         if (!_loading)
         {
             Refresh();
@@ -205,6 +278,7 @@ public sealed partial class NotesPageViewModel : ViewModelBase
 
             Title = note.Title;
             Status = null;
+            RefreshConnections();
         }
         catch (Exception ex)
         {
@@ -244,6 +318,66 @@ public sealed partial class NotesPageViewModel : ViewModelBase
             Status = OperationReport.Describe(ex);
         }
     }
+
+    /// <summary>Opens a linked note, creating it first if it doesn't exist yet (Obsidian's click-to-create).</summary>
+    [RelayCommand]
+    private void OpenLink(NoteLinkItem? link)
+    {
+        if (link is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Flush();
+            var path = link.Path ?? _s.Notes.Create(link.Title);
+            Select(path);
+            if (!link.Exists)
+            {
+                EditorFocusRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+        catch (Exception ex)
+        {
+            Status = OperationReport.Describe(ex);
+        }
+    }
+
+    /// <summary>Opens a note by view model (linked mentions and the note list use this).</summary>
+    [RelayCommand]
+    private void OpenNote(NoteItemViewModel? note)
+    {
+        if (note is not null)
+        {
+            Select(note.Path);
+        }
+    }
+
+    /// <summary>Clicking a graph dot jumps to that note.</summary>
+    [RelayCommand]
+    private void OpenGraphNode(GraphNode? node)
+    {
+        if (node?.Path is { } path)
+        {
+            Select(path);
+        }
+    }
+
+    /// <summary>Clicking a tag filters the list to it; clicking the same tag again clears the filter.</summary>
+    [RelayCommand]
+    private void ToggleTag(string? tag)
+    {
+        if (string.IsNullOrEmpty(tag))
+        {
+            return;
+        }
+
+        ActiveTag = string.Equals(ActiveTag, tag, StringComparison.OrdinalIgnoreCase) ? null : tag;
+    }
+
+    [RelayCommand]
+    private void ClearTag() => ActiveTag = null;
 
     [RelayCommand]
     private async Task DeleteNote()
@@ -299,6 +433,112 @@ public sealed partial class NotesPageViewModel : ViewModelBase
         }
 
         Flush();
+        RefreshConnections();
+    }
+
+    private void UpdateWordCount()
+    {
+        var text = Text;
+        var words = 0;
+        var inWord = false;
+        foreach (var ch in text)
+        {
+            if (char.IsWhiteSpace(ch))
+            {
+                inWord = false;
+            }
+            else if (!inWord)
+            {
+                inWord = true;
+                words++;
+            }
+        }
+
+        WordCountText = _currentPath is null
+            ? string.Empty
+            : $"{words} {(words == 1 ? "word" : "words")}  ·  {text.Length} chars";
+    }
+
+    /// <summary>Recomputes the right rail (links, mentions, tags) and the local graph for the current note.</summary>
+    private void RefreshConnections()
+    {
+        Links.Clear();
+        Backlinks.Clear();
+        Tags.Clear();
+        GraphNodes.Clear();
+        GraphEdges.Clear();
+
+        if (_currentPath is { } path)
+        {
+            try
+            {
+                var outgoing = _s.Notes.OutgoingLinks(path);
+                foreach (var link in outgoing)
+                {
+                    Links.Add(new NoteLinkItem(link.Title, link.Path, link.Exists));
+                }
+
+                foreach (var note in _s.Notes.Backlinks(path))
+                {
+                    Backlinks.Add(new NoteItemViewModel(note));
+                }
+
+                foreach (var tag in NotesService.ParseTags(Text))
+                {
+                    Tags.Add("#" + tag);
+                }
+
+                BuildGraph(path, outgoing);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // A note that vanished mid-edit just shows no connections.
+            }
+        }
+
+        OnPropertyChanged(nameof(HasLinks));
+        OnPropertyChanged(nameof(HasBacklinks));
+        OnPropertyChanged(nameof(HasTags));
+        OnPropertyChanged(nameof(HasGraph));
+        OnPropertyChanged(nameof(HasConnections));
+    }
+
+    private void BuildGraph(string path, IReadOnlyList<NoteLink> outgoing)
+    {
+        const double cx = GraphWidth / 2;
+        const double cy = GraphHeight / 2;
+
+        var neighbours = new List<(string Path, string Title)>();
+        var seen = new HashSet<string>(PathGuard.Comparer);
+        foreach (var link in outgoing)
+        {
+            if (link.Path is { } p && seen.Add(p))
+            {
+                neighbours.Add((p, link.Title));
+            }
+        }
+
+        foreach (var note in Backlinks)
+        {
+            if (seen.Add(note.Path))
+            {
+                neighbours.Add((note.Path, note.Title));
+            }
+        }
+
+        GraphNodes.Add(new GraphNode(path, Selected?.Title ?? Path.GetFileNameWithoutExtension(path),
+            cx - CellWidth / 2, cy - CenterDiameter / 2, CenterDiameter, IsCenter: true));
+
+        var count = neighbours.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var angle = (-Math.PI / 2) + (2 * Math.PI * i / count);
+            var x = cx + (GraphRadius * Math.Cos(angle));
+            var y = cy + (GraphRadius * Math.Sin(angle));
+            GraphEdges.Add(new GraphEdge(new Point(cx, cy), new Point(x, y)));
+            GraphNodes.Add(new GraphNode(neighbours[i].Path, neighbours[i].Title,
+                x - (CellWidth / 2), y - (NodeDiameter / 2), NodeDiameter, IsCenter: false));
+        }
     }
 
     private string ReadSafe(string path)

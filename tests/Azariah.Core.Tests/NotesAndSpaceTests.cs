@@ -62,6 +62,44 @@ public sealed class NotesAndSpaceTests : IDisposable
     }
 
     [Fact]
+    public void Wiki_links_connect_notes_and_track_backlinks()
+    {
+        var ideas = _notes.Create("Ideas");
+        var project = _notes.Create("Project");
+        _notes.Write(project, "See [[Ideas]] and [[Missing]], plus [[Ideas]] again.");
+
+        var outgoing = _notes.OutgoingLinks(project);
+        Assert.Collection(
+            outgoing,
+            link => { Assert.Equal("Ideas", link.Title); Assert.True(link.Exists); Assert.NotNull(link.Path); },
+            link => { Assert.Equal("Missing", link.Title); Assert.False(link.Exists); Assert.Null(link.Path); });
+
+        Assert.Equal("Project", Assert.Single(_notes.Backlinks(ideas)).Title);
+        Assert.Empty(_notes.Backlinks(project));
+    }
+
+    [Fact]
+    public void Link_targets_handle_aliases_folders_and_headings()
+    {
+        Assert.Equal(new[] { "Ideas", "Missing" }, NotesService.ParseLinks("[[Ideas]] then [[Missing]] and [[Ideas]] again"));
+        Assert.Equal(new[] { "Ideas" }, NotesService.ParseLinks("[[Ideas|my idea]] [[notes/Ideas]] [[Ideas#section]]"));
+        Assert.Empty(NotesService.ParseLinks("no links here"));
+    }
+
+    [Fact]
+    public void Tags_are_parsed_and_filter_the_note_list()
+    {
+        Assert.Equal(["roblox", "ui"], NotesService.ParseTags("#roblox and #ui\n# Heading is not a tag\n#123 nope\nmid#word nope"));
+
+        _notes.Write(_notes.Create("Plan"), "roadmap #roblox #ui");
+        _notes.Write(_notes.Create("Chores"), "groceries only");
+
+        Assert.Equal("Plan", Assert.Single(_notes.ByTag("roblox")).Title);
+        Assert.Equal("Plan", Assert.Single(_notes.ByTag("#ui")).Title);
+        Assert.Empty(_notes.ByTag("missing"));
+    }
+
+    [Fact]
     public void Space_report_shows_folders_biggest_files_and_duplicates()
     {
         var copy = new string('a', 3000);
