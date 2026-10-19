@@ -41,6 +41,7 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         NavItems =
         [
             new("home", "Home", MaterialIconKind.HomeVariantOutline, () => new HomeViewModel(session, this)),
+            new("cardshows", "Card shows", MaterialIconKind.CardsOutline, () => CardShows ??= new CardShowsPageViewModel(session, this)),
             new("files", "Files", MaterialIconKind.FolderOutline, () => Files),
             new("notes", "Notes", MaterialIconKind.NoteTextOutline, () => Notes),
             new("roblox", "Roblox", MaterialIconKind.CubeOutline, () => Roblox),
@@ -123,15 +124,8 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         Space.Rescan();
     }
 
-    /// <summary>Card show tables, money owed and past shows. Reached from Home and Ctrl+Space, like Space.</summary>
-    public void OpenCardShows()
-    {
-        Notes.Flush();
-        SelectedNav = null;
-        CardShows ??= new CardShowsPageViewModel(Session, this);
-        CurrentPage = CardShows;
-        CardShows.Refresh();
-    }
+    /// <summary>Card show tables, money owed and past shows. A sidebar place under Home; also reached from Home and Ctrl+Space.</summary>
+    public void OpenCardShows() => Navigate("cardshows");
 
     /// <summary>Quick capture from Ctrl+Space: a timestamped line in today's daily note.</summary>
     public string CaptureNote(string text)

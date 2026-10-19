@@ -286,7 +286,8 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
             }));
         }
 
-        if (Matches("Card shows", query) || Matches("Shows", query) || Matches("OnTreasure", query))
+        // "Card shows" itself is a sidebar page (added above); this only catches the other words for it.
+        if (!Matches("Card shows", query) && (Matches("Shows", query) || Matches("OnTreasure", query)))
         {
             items.Add(new CommandItem("Card shows", "Tables, money owed, past shows", CommandKind.Page, () =>
             {

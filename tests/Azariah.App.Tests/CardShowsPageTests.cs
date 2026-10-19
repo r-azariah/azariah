@@ -51,9 +51,11 @@ public class CardShowsPageTests
         Assert.Contains("$102.51 due now for 2 shows", home.CardShowsSummary, StringComparison.Ordinal);
         Save(window, shots, "home-cardshows.png");
 
+        Assert.Equal("cardshows", workspace.NavItems[1].Key);
         workspace.OpenCardShows();
         Settle();
         var page = Assert.IsType<CardShowsPageViewModel>(workspace.CurrentPage);
+        Assert.Equal("cardshows", workspace.SelectedNav?.Key);
         Assert.Equal(5, page.Upcoming.Count);
         Assert.Equal(2, page.Past.Count);
         Assert.Equal("$102.51", page.DueNowText);

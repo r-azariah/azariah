@@ -10,6 +10,22 @@ Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in
 what you propose, then use the findings to improve AZARIAH.
 (Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
 
+## v0.9.3, 2026-10-19 (laptop): Card shows in the sidebar
+
+Owner wanted Card shows as a pressable sidebar place under Home (screenshot of the sidebar,
+2026-10-19). Now `NavItems[1]` = "cardshows" (icon CardsOutline). `OpenCardShows()` just navigates
+there, so the Home block, Ctrl+Space and the sidebar all land on the same page with the sidebar
+item selected. Command bar: "Card shows" comes from the sidebar list; "Shows"/"OnTreasure" still
+find it without a duplicate. `CardShowsPageTests` checks the sidebar position and selection.
+- Open: owner rule "never use em dashes anywhere" (2026-10-19). The UI still uses em dash
+  placeholders for empty cells (e.g. Card shows Due now / Cost columns). Swap them for a plain
+  hyphen or blank in a later pass.
+- Same note as before: `ChromeMockups.cs` and the `SeedData.cs` OpenMain refactor are another
+  session's work, still uncommitted and not part of this change.
+- The laptop's auto-launch copy was 0.9.0 until 2026-10-19 14:07 (updated to 0.9.2 from the drive
+  with `--finish-update --local-exe`). Other PCs never self-update from the drive; deploy or
+  Settings > Update on each PC.
+
 ## v0.9.2, 2026-10-18 (desktop): Home > Card shows
 
 Owner asked for a card show section under Home. Built and installed with `scripts/deploy.ps1`
