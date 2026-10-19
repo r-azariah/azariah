@@ -286,6 +286,15 @@ public sealed partial class CommandBarViewModel(WorkspaceViewModel workspace) : 
             }));
         }
 
+        if (Matches("Card shows", query) || Matches("Shows", query) || Matches("OnTreasure", query))
+        {
+            items.Add(new CommandItem("Card shows", "Tables, money owed, past shows", CommandKind.Page, () =>
+            {
+                workspace.OpenCardShows();
+                return Task.CompletedTask;
+            }));
+        }
+
         if (Matches("New note", query))
         {
             items.Add(new CommandItem("New note", null, CommandKind.Note, () =>

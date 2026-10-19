@@ -2,6 +2,31 @@
 
 Read this first when picking up the project in a new session.
 
+## Pending owner reference, 2026-10-03
+
+Azariah sent a screen recording and screenshot: "this is similar to what i aspire azariah.exe to be".
+Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in the project root
+`CLAUDE.md`). Not analyzed yet. On the laptop: study them, note what you observe separately from
+what you propose, then use the findings to improve AZARIAH.
+(Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
+
+## v0.9.2, 2026-10-18 (desktop): Home > Card shows
+
+Owner asked for a card show section under Home. Built and installed with `scripts/deploy.ps1`
+(71 tests pass: 57 core, 14 app; hash-checked install on the drive and this PC).
+- `Azariah.Core/CardShows/CardShowBook.cs` reads `<drive>\Projects\Card Shows\data\shows.json`
+  (written by Claude from OnTreasure and the owner's notes; the app only reads it). Missing or broken
+  file = no card shows, never an error on Home. Totals: due now, due at shows, not billed, past spent.
+- Home: "Card shows" block under Games (next 4 shows, due-now line); click opens the page.
+- Card shows page (like Space, not a sidebar place; also Ctrl+Space "Card shows"): money row,
+  Upcoming and Past lists, color only for state. Buttons: Dashboard (opens the offline
+  `AZARIAH Supply Dashboard.html` in that folder), Online (https URL from `Online dashboard.url`
+  only), Folder, Reload.
+- Tests: `tests/Azariah.Core.Tests/CardShowsTests.cs`, `tests/Azariah.App.Tests/CardShowsPageTests.cs`
+  (renders Home and the page; `AZARIAH_SCREENSHOTS` saves `home-cardshows.png`, `cardshows.png`).
+- Left uncommitted, not mine: `tests/Azariah.App.Tests/ChromeMockups.cs` and the `SeedData.cs`
+  OpenMain refactor (another session's custom title bar mockups).
+
 ## Where things stand
 
 - Solution builds with **zero warnings** (warnings are errors) on the .NET 10 SDK.

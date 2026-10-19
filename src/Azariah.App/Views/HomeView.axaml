@@ -52,6 +52,27 @@
           </ItemsControl>
         </StackPanel>
 
+        <StackPanel Spacing="4" IsVisible="{Binding HasCardShows}" Margin="0,0,0,32">
+          <Button Classes="row" Padding="0" HorizontalAlignment="Left" Command="{Binding OpenCardShowsCommand}" Margin="0,0,0,2">
+            <TextBlock Classes="h1 name" Text="Card shows" />
+          </Button>
+          <TextBlock Classes="key" Text="{Binding CardShowsSummary}" Margin="0,0,0,8" TextTrimming="CharacterEllipsis" />
+          <ItemsControl ItemsSource="{Binding CardShows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CardShowRow">
+                <Button Classes="row" Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).OpenCardShowsCommand}">
+                  <Grid ColumnDefinitions="150,*,140,110">
+                    <TextBlock Classes="key" Text="{Binding DateText}" />
+                    <TextBlock Grid.Column="1" Classes="name" Text="{Binding Name}" FontSize="15" FontWeight="Medium" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="2" Classes="val" Classes.danger="{Binding IsBad}" Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="3" Classes="val" Classes.success="{Binding IsOk}" Classes.warning="{Binding IsWarn}" Text="{Binding PaidText}" TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
         <TextBlock Classes="h1" Text="Recent" Margin="0,0,0,10" />
         <TextBlock Classes="muted" Text="Nothing opened yet." IsVisible="{Binding !HasRecent}" />
         <ItemsControl ItemsSource="{Binding Recent}">

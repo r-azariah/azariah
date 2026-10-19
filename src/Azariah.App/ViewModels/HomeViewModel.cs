@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Azariah.App.Platform;
 using Azariah.App.Services;
+using Azariah.Core.CardShows;
 using Azariah.Core.Drive;
 using Azariah.Core.Roblox;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -40,6 +41,14 @@ public sealed partial class HomeViewModel : ViewModelBase
     public ObservableCollection<RobloxProjectViewModel> Games { get; } = [];
 
     public bool HasGames => Games.Count > 0;
+
+    /// <summary>The next few card shows, soonest first (Projects\Card Shows).</summary>
+    public ObservableCollection<CardShowRow> CardShows { get; } = [];
+
+    public bool HasCardShows => CardShows.Count > 0;
+
+    [ObservableProperty]
+    public partial string CardShowsSummary { get; set; } = string.Empty;
 
     public string DriveName => _s.Marker.DisplayName;
     public string MachineName => _s.Shell.MachineDisplayName;
@@ -89,7 +98,17 @@ public sealed partial class HomeViewModel : ViewModelBase
             Games.Add(new RobloxProjectViewModel(game));
         }
 
+        var shows = CardShowBook.Load(_s.Layout);
+        CardShows.Clear();
+        foreach (var show in shows.Upcoming.Take(4))
+        {
+            CardShows.Add(CardShowRow.From(show));
+        }
+
+        CardShowsSummary = CardShowsPageViewModel.SummaryFor(shows);
+
         OnPropertyChanged(nameof(HasGames));
+        OnPropertyChanged(nameof(HasCardShows));
         OnPropertyChanged(nameof(HasRecent));
         OnPropertyChanged(nameof(DriveName));
         _ = RefreshAutoLaunchAsync();
@@ -156,6 +175,9 @@ public sealed partial class HomeViewModel : ViewModelBase
 
     [RelayCommand]
     private void OpenSpace() => _workspace.OpenSpace();
+
+    [RelayCommand]
+    private void OpenCardShows() => _workspace.OpenCardShows();
 
     [RelayCommand]
     private Task OpenGameInStudio(RobloxProjectViewModel game) => _workspace.OpenGameAsync(game.Project);}

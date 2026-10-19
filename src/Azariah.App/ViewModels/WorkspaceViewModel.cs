@@ -61,6 +61,8 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
 
     public SpacePageViewModel? Space { get; private set; }
 
+    public CardShowsPageViewModel? CardShows { get; private set; }
+
     public CommandBarViewModel CommandBar { get; }
 
     public ObservableCollection<NavItem> NavItems { get; }
@@ -119,6 +121,16 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
         Space ??= new SpacePageViewModel(Session, this);
         CurrentPage = Space;
         Space.Rescan();
+    }
+
+    /// <summary>Card show tables, money owed and past shows. Reached from Home and Ctrl+Space, like Space.</summary>
+    public void OpenCardShows()
+    {
+        Notes.Flush();
+        SelectedNav = null;
+        CardShows ??= new CardShowsPageViewModel(Session, this);
+        CurrentPage = CardShows;
+        CardShows.Refresh();
     }
 
     /// <summary>Quick capture from Ctrl+Space: a timestamped line in today's daily note.</summary>
@@ -241,6 +253,9 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
                 break;
             case NotesPageViewModel notes:
                 notes.Refresh();
+                break;
+            case CardShowsPageViewModel cardShows:
+                cardShows.Refresh();
                 break;
             case SettingsViewModel settings:
                 _ = settings.RefreshAsync();
