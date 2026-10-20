@@ -3,18 +3,14 @@ using System.Text.Json;
 namespace Azariah.Core.CardShows;
 
 /// <summary>
-/// One finished show, left to right: growth (end - start) is the whole story; cash change and value change split it;
-/// growth minus the table is what the show left you with. Realized is information only (it is already inside growth).
+/// One finished show, left to right: portfolio change (the owner-balanced estimate) minus the table is what the show
+/// left you with. Realized is information only. Potential is end value plus a quarter of the end cash.
 /// </summary>
 public sealed record ShowResult(
     DateOnly Date,
     string Show,
     int Trans,
-    decimal Start,
-    decimal End,
-    decimal Growth,
-    decimal CashChange,
-    decimal ValueChange,
+    decimal PortfolioChange,
     decimal? ShowCost,
     decimal AfterCost,
     decimal Realized,
@@ -23,7 +19,7 @@ public sealed record ShowResult(
 
 /// <summary>The figures above the table. Potential is the latest show's.</summary>
 public sealed record ResultTotals(
-    decimal Growth,
+    decimal PortfolioChange,
     decimal ShowCosts,
     decimal AfterCost,
     decimal Realized,
@@ -37,7 +33,7 @@ public sealed record CardMove(string Move, string Card, string Condition, decima
 
 /// <summary>
 /// Results per show, read from the JSON files Claude keeps in <c>Projects\Card Shows\data</c>:
-/// results.json, portfolio-change.json, portfolio-moves.json.
+/// results.json, results-display-allocation.json (owner-balanced portfolio change), portfolio-change.json, portfolio-moves.json.
 /// Read-only. Money is rounded to cents at every step so the columns add up across.
 /// </summary>
 public sealed class CardShowResults
@@ -90,7 +86,8 @@ public sealed class CardShowResults
         var results = CardShowBook.ReadRows(folder, "results.json", out var p1);
         var change = CardShowBook.ReadRows(folder, "portfolio-change.json", out var p2);
         var moves = CardShowBook.ReadRows(folder, "portfolio-moves.json", out var p3);
-        problems.AddRange(new[] { p1, p2, p3 }.OfType<string>());
+        var allocation = CardShowBook.ReadRows(folder, "results-display-allocation.json", out var p4);
+        problems.AddRange(new[] { p1, p2, p3, p4 }.OfType<string>());
 
         var rows = new List<ShowResult>();
         foreach (var r in results ?? [])
@@ -102,27 +99,28 @@ public sealed class CardShowResults
             }
 
             var trans = (int)(CardShowBook.Number(r, "trans") ?? 0);
-            var start = Cents(CardShowBook.Number(r, "start") ?? 0);
+            var start = CardShowBook.Number(r, "start") ?? 0;
             var end = Cents(CardShowBook.Number(r, "end") ?? 0);
             var endCash = Cents(CardShowBook.Number(r, "end_cash") ?? 0);
-            var cashChange = Cents(endCash - (CardShowBook.Number(r, "start_cash") ?? 0));
             var realized = Cents(CardShowBook.Number(r, "realized") ?? 0);
+            var label = CardShowBook.Text(r, "label").Trim();
 
             var show = book.Shows.FirstOrDefault(s => Same(s.Name, name) && s.Start == date) ?? book.Shows.FirstOrDefault(s => Same(s.Name, name));
             decimal? cost = show?.Price is { } price ? Cents(price) : null;
 
-            var growth = Cents(end - start);
-            var valueChange = Cents(growth - cashChange);
-            var afterCost = Cents(growth - (cost ?? 0));
+            // Owner-balanced estimate by event; a show without one falls back to the measured end - start.
+            var estimate = (allocation ?? []).FirstOrDefault(a => Same(CardShowBook.Text(a, "event"), name) && CardShowBook.Number(a, "growth_estimate") is not null);
+            var portfolioChange = Cents(estimate.ValueKind == JsonValueKind.Object ? CardShowBook.Number(estimate, "growth_estimate") ?? 0 : end - start);
+            var afterCost = Cents(portfolioChange - (cost ?? 0));
             var potential = Cents(end + endCash * (CashFactor - 1m));
-            decimal? perTrans = trans > 0 ? Cents(growth / trans) : null;
+            decimal? perTrans = trans > 0 ? Cents(portfolioChange / trans) : null;
 
-            rows.Add(new ShowResult(date, name, trans, start, end, growth, cashChange, valueChange, cost, afterCost, realized, potential, perTrans));
+            rows.Add(new ShowResult(date, label.Length > 0 ? label : name, trans, portfolioChange, cost, afterCost, realized, potential, perTrans));
         }
 
         var ordered = rows.OrderByDescending(r => r.Date).ThenBy(r => r.Show, StringComparer.Ordinal).ToList();
         var totals = new ResultTotals(
-            Cents(ordered.Sum(r => r.Growth)),
+            Cents(ordered.Sum(r => r.PortfolioChange)),
             Cents(ordered.Sum(r => r.ShowCost ?? 0)),
             Cents(ordered.Sum(r => r.AfterCost)),
             Cents(ordered.Sum(r => r.Realized)),

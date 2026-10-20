@@ -78,11 +78,7 @@ public sealed record ResultRowView(
     string DateText,
     string Show,
     string Trans,
-    string Start,
-    string End,
-    SignedFigure Growth,
-    SignedFigure CashChange,
-    SignedFigure ValueChange,
+    SignedFigure PortfolioChange,
     string Cost,
     SignedFigure AfterCost,
     string Realized,
@@ -93,11 +89,7 @@ public sealed record ResultRowView(
         r.Date.ToString("MMM d", CultureInfo.InvariantCulture),
         r.Show,
         r.Trans.ToString(CultureInfo.InvariantCulture),
-        CardShowsPageViewModel.Plain(r.Start),
-        CardShowsPageViewModel.Plain(r.End),
-        SignedFigure.Of(r.Growth),
-        SignedFigure.Of(r.CashChange),
-        SignedFigure.Of(r.ValueChange),
+        SignedFigure.Of(r.PortfolioChange),
         r.ShowCost is { } c ? CardShowsPageViewModel.Plain(c) : string.Empty,
         SignedFigure.Of(r.AfterCost),
         CardShowsPageViewModel.Plain(r.Realized),
@@ -322,10 +314,10 @@ public sealed partial class CardShowsPageViewModel : ViewModelBase
         if (results.HasResults)
         {
             var t = results.Totals;
-            ResultFigures.Add(Figure.WithSign("= Growth", t.Growth));
+            ResultFigures.Add(Figure.WithSign("Portfolio change", t.PortfolioChange));
             ResultFigures.Add(new Figure("− Show costs", "$" + Plain(t.ShowCosts)));
             ResultFigures.Add(Figure.WithSign("= After cost", t.AfterCost));
-            ResultFigures.Add(new Figure("Realized (already in growth)", "$" + Plain(t.Realized)));
+            ResultFigures.Add(new Figure("Realized (info)", "$" + Plain(t.Realized)));
             ResultFigures.Add(new Figure("Potential", t.Potential is { } p ? "$" + Plain(p) : string.Empty));
             foreach (var row in results.Rows)
             {

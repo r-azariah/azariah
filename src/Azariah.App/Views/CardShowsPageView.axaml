@@ -153,39 +153,31 @@
 
         <StackPanel Spacing="0" IsVisible="{Binding HasResults}">
           <TextBlock Classes="h3" Text="Shows" Margin="0,0,0,6" />
-          <Grid ColumnDefinitions="54,*,44,72,72,72,72,76,64,76,72,76,64" Margin="0,0,0,4">
+          <Grid ColumnDefinitions="54,*,44,92,76,80,72,76,64" Margin="0,0,0,4">
             <TextBlock Classes="key hn" Text="Date" />
             <TextBlock Grid.Column="1" Classes="key hn" Text="Show" />
             <TextBlock Grid.Column="2" Classes="key hn n" Text="Trans" />
-            <TextBlock Grid.Column="3" Classes="key hn n" Text="Start" />
-            <TextBlock Grid.Column="4" Classes="key hn n" Text="End" />
-            <TextBlock Grid.Column="5" Classes="key hn n" Text="= Growth" />
-            <TextBlock Grid.Column="6" Classes="key hn n" Text="Cash change" />
-            <TextBlock Grid.Column="7" Classes="key hn n" Text="Value change" />
-            <TextBlock Grid.Column="8" Classes="key hn n" Text="&#x2212; Show cost" />
-            <TextBlock Grid.Column="9" Classes="key hn n" Text="= After cost" />
-            <TextBlock Grid.Column="10" Classes="key hn n" Text="Realized" />
-            <TextBlock Grid.Column="11" Classes="key hn n" Text="Potential" />
-            <TextBlock Grid.Column="12" Classes="key hn n" Text="Per trans" />
+            <TextBlock Grid.Column="3" Classes="key hn n" Text="Portfolio change" />
+            <TextBlock Grid.Column="4" Classes="key hn n" Text="&#x2212; Show cost" />
+            <TextBlock Grid.Column="5" Classes="key hn n" Text="= After cost" />
+            <TextBlock Grid.Column="6" Classes="key hn n" Text="Realized (info)" />
+            <TextBlock Grid.Column="7" Classes="key hn n" Text="Potential" />
+            <TextBlock Grid.Column="8" Classes="key hn n" Text="Per trans" />
           </Grid>
           <ItemsControl ItemsSource="{Binding ResultRows}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:ResultRowView">
                 <Border Classes="rule">
-                  <Grid ColumnDefinitions="54,*,44,72,72,72,72,76,64,76,72,76,64">
+                  <Grid ColumnDefinitions="54,*,44,92,76,80,72,76,64">
                     <TextBlock Classes="key" Text="{Binding DateText}" />
                     <TextBlock Grid.Column="1" Classes="val" Text="{Binding Show}" ToolTip.Tip="{Binding Show}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="2" Classes="val n" Text="{Binding Trans}" />
-                    <TextBlock Grid.Column="3" Classes="val n" Text="{Binding Start}" />
-                    <TextBlock Grid.Column="4" Classes="val n" Text="{Binding End}" />
-                    <TextBlock Grid.Column="5" Classes="val n total" Classes.danger="{Binding Growth.IsNegative}" Classes.success="{Binding Growth.IsPositive}" Text="{Binding Growth.Text}" />
-                    <TextBlock Grid.Column="6" Classes="val n" Classes.danger="{Binding CashChange.IsNegative}" Classes.success="{Binding CashChange.IsPositive}" Text="{Binding CashChange.Text}" />
-                    <TextBlock Grid.Column="7" Classes="val n" Classes.danger="{Binding ValueChange.IsNegative}" Classes.success="{Binding ValueChange.IsPositive}" Text="{Binding ValueChange.Text}" />
-                    <TextBlock Grid.Column="8" Classes="val n" Text="{Binding Cost}" />
-                    <TextBlock Grid.Column="9" Classes="val n total" Classes.danger="{Binding AfterCost.IsNegative}" Classes.success="{Binding AfterCost.IsPositive}" Text="{Binding AfterCost.Text}" />
-                    <TextBlock Grid.Column="10" Classes="key n" Text="{Binding Realized}" />
-                    <TextBlock Grid.Column="11" Classes="val n" Text="{Binding Potential}" />
-                    <TextBlock Grid.Column="12" Classes="val n" Classes.danger="{Binding PerTrans.IsNegative}" Classes.success="{Binding PerTrans.IsPositive}" Text="{Binding PerTrans.Text}" />
+                    <TextBlock Grid.Column="3" Classes="val n total" Classes.danger="{Binding PortfolioChange.IsNegative}" Classes.success="{Binding PortfolioChange.IsPositive}" Text="{Binding PortfolioChange.Text}" />
+                    <TextBlock Grid.Column="4" Classes="val n" Text="{Binding Cost}" />
+                    <TextBlock Grid.Column="5" Classes="val n total" Classes.danger="{Binding AfterCost.IsNegative}" Classes.success="{Binding AfterCost.IsPositive}" Text="{Binding AfterCost.Text}" />
+                    <TextBlock Grid.Column="6" Classes="key n" Text="{Binding Realized}" />
+                    <TextBlock Grid.Column="7" Classes="val n" Text="{Binding Potential}" />
+                    <TextBlock Grid.Column="8" Classes="val n" Classes.danger="{Binding PerTrans.IsNegative}" Classes.success="{Binding PerTrans.IsPositive}" Text="{Binding PerTrans.Text}" />
                   </Grid>
                 </Border>
               </DataTemplate>

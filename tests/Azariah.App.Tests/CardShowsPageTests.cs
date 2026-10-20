@@ -77,6 +77,15 @@ public class CardShowsPageTests
         ]
         """;
 
+    private const string Allocation = """
+        [
+          {"event":"Kingston MA (Gone Broke)","date":"2026-09-20","growth_estimate":74},
+          {"event":"Cards After Dark card show","date":"2026-09-27","growth_estimate":400},
+          {"event":"South Shore Card Show","date":"2026-10-18","growth_estimate":362.43},
+          {"event":"October Turtle Boyz Show","date":"2026-10-19","growth_estimate":-24.72}
+        ]
+        """;
+
     private const string Walk = """
         [
           {"step":"1","show":"October Turtle Boyz Show","date":"2026-10-19","label":"Start: collection + cash","amount":4269.14,"kind":"total","detail":"Oct 18 end collection $4,009.14 + $260.00 cash"},
@@ -102,6 +111,7 @@ public class CardShowsPageTests
         var data = Path.Combine(folder, "data");
         File.WriteAllText(Path.Combine(data, CardShowBook.DataFile), PastShows);
         File.WriteAllText(Path.Combine(data, "results.json"), Results);
+        File.WriteAllText(Path.Combine(data, "results-display-allocation.json"), Allocation);
         File.WriteAllText(Path.Combine(data, "portfolio-change.json"), Walk);
         File.WriteAllText(Path.Combine(data, "portfolio-moves.json"), Moves);
         var inv = System.Globalization.CultureInfo.InvariantCulture;
@@ -119,14 +129,12 @@ public class CardShowsPageTests
         Settle();
         Assert.True(page.IsResultsTab);
         Assert.False(page.IsShowsTab);
-        Assert.Equal(new[] { "= Growth", "\u2212 Show costs", "= After cost", "Realized (already in growth)", "Potential" }, page.ResultFigures.Select(f => f.Label));
+        Assert.Equal(new[] { "Portfolio change", "\u2212 Show costs", "= After cost", "Realized (info)", "Potential" }, page.ResultFigures.Select(f => f.Label));
         Assert.Equal("$4,350.17", page.ResultFigures[4].Text);
         Assert.Equal(4, page.ResultRows.Count);
         var turtle = page.ResultRows[0];
         Assert.Equal("October Turtle Boyz Show", turtle.Show);
-        Assert.Equal(("\u221224.72", true), (turtle.Growth.Text, turtle.Growth.IsNegative));
-        Assert.Equal("+163.00", turtle.CashChange.Text);
-        Assert.Equal("\u2212187.72", turtle.ValueChange.Text);
+        Assert.Equal(("\u221224.72", true), (turtle.PortfolioChange.Text, turtle.PortfolioChange.IsNegative));
         Assert.Equal("20.00", turtle.Cost);
         Assert.Equal("\u221244.72", turtle.AfterCost.Text);
         Assert.Equal("113.78", turtle.Realized);

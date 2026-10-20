@@ -10,6 +10,10 @@ Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in
 what you propose, then use the findings to improve AZARIAH.
 (Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
 
+## v0.9.5, 2026-10-20: Results use the owner-balanced model
+
+Owner rejected the measured Results model. The Results tab now matches the HTML dashboard: Date | Show (`label` from results.json, else `event`) | Trans | Portfolio change (`growth_estimate` from `results-display-allocation.json`, by event; falls back to measured end - start if a show has none) | - Show cost | = After cost | Realized (info) | Potential (end + 0.25 x end cash) | Per trans (portfolio change / trans). Start/End/Cash change/Value change columns removed. Walk and card moves unchanged. Core tests updated (`CardShowResultsTests`).
+
 ## v0.9.4, 2026-10-20: in-app card show dashboard
 
 Owner: "i dont like how pressing dashboard open an html instead of just displaying it there". The Card shows

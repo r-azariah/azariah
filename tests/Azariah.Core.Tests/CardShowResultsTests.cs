@@ -23,6 +23,13 @@ public sealed class CardShowResultsTests : IDisposable
         ]
         """;
 
+    private const string Allocation = """
+        [
+          {"event":"Kingston MA (Gone Broke)","date":"2026-09-20","growth_estimate":74},
+          {"event":"October Turtle Boyz Show","date":"2026-10-19","growth_estimate":-24.72}
+        ]
+        """;
+
     private const string Walk = """
         [
           {"step":"2","show":"October Turtle Boyz Show","date":"2026-10-19","label":"Sold 5 items","amount":-4.75,"kind":"change","detail":"$422.75 left, $418.00 came in."},
@@ -55,6 +62,7 @@ public sealed class CardShowResultsTests : IDisposable
     {
         _drive.File(@"Projects/Card Shows/data/shows.json", Shows);
         _drive.File(@"Projects/Card Shows/data/results.json", Results);
+        _drive.File(@"Projects/Card Shows/data/results-display-allocation.json", Allocation);
         _drive.File(@"Projects/Card Shows/data/portfolio-change.json", Walk);
         _drive.File(@"Projects/Card Shows/data/portfolio-moves.json", Moves);
         _drive.File(@"Projects/Card Shows/data/collection.json", Everything);
@@ -62,7 +70,7 @@ public sealed class CardShowResultsTests : IDisposable
     }
 
     [Fact]
-    public void A_show_row_is_measured_from_start_to_end_and_adds_up_left_to_right()
+    public void A_show_row_uses_the_owner_balanced_portfolio_change_and_adds_up_left_to_right()
     {
         var results = CardShowResults.Load(Seed());
 
@@ -71,11 +79,7 @@ public sealed class CardShowResultsTests : IDisposable
         Assert.Equal("October Turtle Boyz Show", turtle.Show);
         Assert.Equal(new DateOnly(2026, 10, 19), turtle.Date);
         Assert.Equal(8, turtle.Trans);
-        Assert.Equal(4269.14m, turtle.Start);
-        Assert.Equal(4244.42m, turtle.End);
-        Assert.Equal(-24.72m, turtle.Growth);
-        Assert.Equal(163m, turtle.CashChange);
-        Assert.Equal(-187.72m, turtle.ValueChange);
+        Assert.Equal(-24.72m, turtle.PortfolioChange);
         Assert.Equal(20m, turtle.ShowCost);
         Assert.Equal(-44.72m, turtle.AfterCost);
         Assert.Equal(113.78m, turtle.Realized);
@@ -83,29 +87,26 @@ public sealed class CardShowResultsTests : IDisposable
         Assert.Equal(-3.09m, turtle.PerTrans);
 
         var kingston = results.Rows[1];
-        Assert.Equal(610.83m, kingston.Growth);
-        Assert.Equal(-323m, kingston.CashChange);
-        Assert.Equal(933.83m, kingston.ValueChange);
-        Assert.Equal(536.83m, kingston.AfterCost);
+        Assert.Equal(74m, kingston.PortfolioChange);
+        Assert.Equal(74m, kingston.ShowCost);
+        Assert.Equal(0m, kingston.AfterCost);
         Assert.Equal(4570.08m, kingston.Potential);
-        Assert.Equal(55.53m, kingston.PerTrans);
+        Assert.Equal(6.73m, kingston.PerTrans);
 
         foreach (var row in results.Rows)
         {
-            Assert.Equal(row.End - row.Start, row.Growth);
-            Assert.Equal(row.CashChange + row.ValueChange, row.Growth);
-            Assert.Equal(row.Growth - (row.ShowCost ?? 0), row.AfterCost);
+            Assert.Equal(row.PortfolioChange - (row.ShowCost ?? 0), row.AfterCost);
         }
     }
 
     [Fact]
-    public void Realized_is_information_only_and_never_added_to_growth()
+    public void Realized_is_information_only_and_never_added_to_the_portfolio_change()
     {
         var row = CardShowResults.Load(Seed()).Rows[0];
 
         Assert.Equal(113.78m, row.Realized);
-        Assert.NotEqual(row.Growth + row.Realized - 20m, row.AfterCost);
-        Assert.Equal(row.Growth - 20m, row.AfterCost);
+        Assert.NotEqual(row.PortfolioChange + row.Realized - 20m, row.AfterCost);
+        Assert.Equal(row.PortfolioChange - 20m, row.AfterCost);
     }
 
     [Fact]
@@ -113,27 +114,39 @@ public sealed class CardShowResultsTests : IDisposable
     {
         var totals = CardShowResults.Load(Seed()).Totals;
 
-        Assert.Equal(586.11m, totals.Growth);
+        Assert.Equal(49.28m, totals.PortfolioChange);
         Assert.Equal(94m, totals.ShowCosts);
-        Assert.Equal(492.11m, totals.AfterCost);
+        Assert.Equal(-44.72m, totals.AfterCost);
         Assert.Equal(161.41m, totals.Realized);
         Assert.Equal(4350.17m, totals.Potential);
-        Assert.Equal(totals.Growth - totals.ShowCosts, totals.AfterCost);
+        Assert.Equal(totals.PortfolioChange - totals.ShowCosts, totals.AfterCost);
     }
 
     [Fact]
-    public void An_allocation_file_is_ignored_and_a_show_not_in_the_tracker_has_no_cost()
+    public void A_results_label_replaces_the_event_name_but_the_cost_still_matches_by_event()
     {
-        _drive.File(@"Projects/Card Shows/data/results-display-allocation.json", """[{"event":"Mystery","date":"2026-10-20","growth_estimate":999}]""");
+        _drive.File(@"Projects/Card Shows/data/shows.json", Shows);
+        _drive.File(@"Projects/Card Shows/data/results-display-allocation.json", Allocation);
+        _drive.File(@"Projects/Card Shows/data/results.json", """[{"date":"2026-09-20","event":"Kingston MA (Gone Broke)","label":"Kingston + extras","trans":11,"start":3890,"end":4500.83,"realized":47.63,"start_cash":600,"end_cash":277}]""");
+        var row = CardShowResults.Load(CardShowBook.Load(_drive.Layout)).Rows.Single();
+
+        Assert.Equal("Kingston + extras", row.Show);
+        Assert.Equal(74m, row.ShowCost);
+        Assert.Equal(74m, row.PortfolioChange);
+    }
+
+    [Fact]
+    public void A_show_without_an_estimate_falls_back_to_measured_and_without_a_tracker_entry_has_no_cost()
+    {
+        _drive.File(@"Projects/Card Shows/data/results-display-allocation.json", """[{"event":"Other","date":"2026-10-20","growth_estimate":999}]""");
         _drive.File(@"Projects/Card Shows/data/shows.json", "[]");
         _drive.File(@"Projects/Card Shows/data/results.json", """[{"date":"2026-10-20","event":"Mystery","trans":0,"start":100,"end":105,"realized":2,"start_cash":10,"end_cash":40}]""");
         var row = CardShowResults.Load(CardShowBook.Load(_drive.Layout)).Rows.Single();
 
-        Assert.Equal(5m, row.Growth);
+        Assert.Equal(5m, row.PortfolioChange);
         Assert.Null(row.ShowCost);
         Assert.Null(row.PerTrans);
         Assert.Equal(5m, row.AfterCost);
-        Assert.Equal(-25m, row.ValueChange);
         Assert.Equal(115m, row.Potential);
     }
 
