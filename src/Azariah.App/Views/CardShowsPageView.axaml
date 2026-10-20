@@ -131,7 +131,7 @@
         </StackPanel>
       </StackPanel>
 
-      <!-- Results: every row reads left to right and adds up -->
+      <!-- Results: Performance (last column) is the bottom line; click a header to sort -->
       <StackPanel Spacing="28" IsVisible="{Binding IsResultsTab}">
         <TextBlock Classes="key" Text="{Binding ResultsNote}" IsVisible="{Binding HasResultsNote}" TextWrapping="Wrap" />
 
@@ -153,31 +153,49 @@
 
         <StackPanel Spacing="0" IsVisible="{Binding HasResults}">
           <TextBlock Classes="h3" Text="Shows" Margin="0,0,0,6" />
-          <Grid ColumnDefinitions="54,*,44,92,76,80,72,76,64" Margin="0,0,0,4">
-            <TextBlock Classes="key hn" Text="Date" />
-            <TextBlock Grid.Column="1" Classes="key hn" Text="Show" />
-            <TextBlock Grid.Column="2" Classes="key hn n" Text="Trans" />
-            <TextBlock Grid.Column="3" Classes="key hn n" Text="Portfolio change" />
-            <TextBlock Grid.Column="4" Classes="key hn n" Text="&#x2212; Show cost" />
-            <TextBlock Grid.Column="5" Classes="key hn n" Text="= After cost" />
-            <TextBlock Grid.Column="6" Classes="key hn n" Text="Realized (info)" />
-            <TextBlock Grid.Column="7" Classes="key hn n" Text="Potential" />
-            <TextBlock Grid.Column="8" Classes="key hn n" Text="Per trans" />
+          <Grid ColumnDefinitions="54,*,44,92,76,72,76,64,88" Margin="0,0,0,4">
+            <Button Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding SortResultsCommand}" CommandParameter="Date" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn" Text="{Binding ResultHeaders[0].Text}" />
+            </Button>
+            <Button Grid.Column="1" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding SortResultsCommand}" CommandParameter="Show" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn" Text="{Binding ResultHeaders[1].Text}" />
+            </Button>
+            <Button Grid.Column="2" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="Trans" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[2].Text}" />
+            </Button>
+            <Button Grid.Column="3" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="PortfolioChange" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[3].Text}" />
+            </Button>
+            <Button Grid.Column="4" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="ShowCost" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[4].Text}" />
+            </Button>
+            <Button Grid.Column="5" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="Realized" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[5].Text}" />
+            </Button>
+            <Button Grid.Column="6" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="Potential" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[6].Text}" />
+            </Button>
+            <Button Grid.Column="7" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="PerTrans" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[7].Text}" />
+            </Button>
+            <Button Grid.Column="8" Classes="ghost" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Right" Command="{Binding SortResultsCommand}" CommandParameter="Performance" ToolTip.Tip="Sort by this column">
+              <TextBlock Classes="key hn n" Text="{Binding ResultHeaders[8].Text}" />
+            </Button>
           </Grid>
           <ItemsControl ItemsSource="{Binding ResultRows}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:ResultRowView">
                 <Border Classes="rule">
-                  <Grid ColumnDefinitions="54,*,44,92,76,80,72,76,64">
+                  <Grid ColumnDefinitions="54,*,44,92,76,72,76,64,88">
                     <TextBlock Classes="key" Text="{Binding DateText}" />
                     <TextBlock Grid.Column="1" Classes="val" Text="{Binding Show}" ToolTip.Tip="{Binding Show}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="2" Classes="val n" Text="{Binding Trans}" />
                     <TextBlock Grid.Column="3" Classes="val n total" Classes.danger="{Binding PortfolioChange.IsNegative}" Classes.success="{Binding PortfolioChange.IsPositive}" Text="{Binding PortfolioChange.Text}" />
                     <TextBlock Grid.Column="4" Classes="val n" Text="{Binding Cost}" />
-                    <TextBlock Grid.Column="5" Classes="val n total" Classes.danger="{Binding AfterCost.IsNegative}" Classes.success="{Binding AfterCost.IsPositive}" Text="{Binding AfterCost.Text}" />
-                    <TextBlock Grid.Column="6" Classes="key n" Text="{Binding Realized}" />
-                    <TextBlock Grid.Column="7" Classes="val n" Text="{Binding Potential}" />
-                    <TextBlock Grid.Column="8" Classes="val n" Classes.danger="{Binding PerTrans.IsNegative}" Classes.success="{Binding PerTrans.IsPositive}" Text="{Binding PerTrans.Text}" />
+                    <TextBlock Grid.Column="5" Classes="val n" Text="{Binding Realized}" />
+                    <TextBlock Grid.Column="6" Classes="val n" Text="{Binding Potential}" />
+                    <TextBlock Grid.Column="7" Classes="val n" Classes.danger="{Binding PerTrans.IsNegative}" Classes.success="{Binding PerTrans.IsPositive}" Text="{Binding PerTrans.Text}" />
+                    <TextBlock Grid.Column="8" Classes="val n total" FontSize="14" Classes.danger="{Binding Performance.IsNegative}" Classes.success="{Binding Performance.IsPositive}" Text="{Binding Performance.Text}" />
                   </Grid>
                 </Border>
               </DataTemplate>

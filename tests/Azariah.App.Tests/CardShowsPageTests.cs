@@ -129,14 +129,16 @@ public class CardShowsPageTests
         Settle();
         Assert.True(page.IsResultsTab);
         Assert.False(page.IsShowsTab);
-        Assert.Equal(new[] { "Portfolio change", "\u2212 Show costs", "= After cost", "Realized (info)", "Potential" }, page.ResultFigures.Select(f => f.Label));
+        Assert.Equal(new[] { "Performance", "Portfolio change", "\u2212 Show costs", "Realized", "Potential" }, page.ResultFigures.Select(f => f.Label));
         Assert.Equal("$4,350.17", page.ResultFigures[4].Text);
         Assert.Equal(4, page.ResultRows.Count);
-        var turtle = page.ResultRows[0];
+        Assert.Equal(new[] { "Date \u25B2", "Show", "Trans", "Portfolio change", "\u2212 Show cost", "Realized", "Potential", "Per trans", "Performance" }, page.ResultHeaders.Select(h => h.Text));
+        Assert.Equal(page.ResultRows.Select(r => r.DateText), page.ResultRows.Select(r => r.DateText).OrderBy(d => DateTime.ParseExact(d, "MMM d", System.Globalization.CultureInfo.InvariantCulture)));
+        var turtle = page.ResultRows.Single(r => r.Show == "October Turtle Boyz Show");
         Assert.Equal("October Turtle Boyz Show", turtle.Show);
         Assert.Equal(("\u221224.72", true), (turtle.PortfolioChange.Text, turtle.PortfolioChange.IsNegative));
         Assert.Equal("20.00", turtle.Cost);
-        Assert.Equal("\u221244.72", turtle.AfterCost.Text);
+        Assert.Equal("+69.06", turtle.Performance.Text);
         Assert.Equal("113.78", turtle.Realized);
         Assert.Equal("4,350.17", turtle.Potential);
         Assert.Equal("\u22123.09", turtle.PerTrans.Text);
@@ -145,6 +147,20 @@ public class CardShowsPageTests
         Assert.Equal(4, page.MoveRows.Count);
         Assert.Equal("\u22120.16", page.MoveRows[1].Realized.Text);
         Save(window, shots, "cardshows-results.png");
+
+        // Sorting: a text column sorts by text, a number column numerically, a second click flips it.
+        page.SortResultsCommand.Execute("Show");
+        Assert.Equal(page.ResultRows.Select(r => r.Show).OrderBy(x => x, StringComparer.OrdinalIgnoreCase), page.ResultRows.Select(r => r.Show));
+        Assert.Equal("Show \u25B2", page.ResultHeaders[1].Text);
+        Assert.Equal("Date", page.ResultHeaders[0].Text);
+        page.SortResultsCommand.Execute("Performance");
+        var asc = page.ResultRows.Select(r => r.Performance).ToList();
+        Assert.Equal(asc.OrderBy(Value), asc);
+        page.SortResultsCommand.Execute("Performance");
+        Assert.Equal("Performance \u25BC", page.ResultHeaders[8].Text);
+        Assert.Equal(asc.OrderByDescending(Value).Select(f => f.Text), page.ResultRows.Select(r => r.Performance.Text));
+        page.SortResultsCommand.Execute("Date");
+        Assert.Equal("Date \u25B2", page.ResultHeaders[0].Text);
 
         page.OpenCollectionTabCommand.Execute(null);
         Settle();
@@ -179,6 +195,9 @@ public class CardShowsPageTests
         window.Show();
         return (window, Assert.IsType<WorkspaceViewModel>(main.Current), folder);
     }
+
+    private static decimal Value(SignedFigure f) =>
+        decimal.Parse(f.Text.Replace("−", "-").Replace("+", string.Empty).Replace(",", string.Empty), System.Globalization.CultureInfo.InvariantCulture);
 
     private static void Settle()
     {

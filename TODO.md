@@ -10,6 +10,9 @@ Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in
 what you propose, then use the findings to improve AZARIAH.
 (Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
 
+## v0.9.6, 2026-10-20: Results Performance column + sortable headers
+Results tab now matches the HTML dashboard: removed the After cost column; added last column Performance = Portfolio change + Realized - Show cost (signed, green/red, emphasized), with a Performance total first in the totals row. Order: Date | Show | Trans | Portfolio change | - Show cost | Realized | Potential | Per trans | Performance. Every column header is clickable to sort (default Date ascending; click again to flip; text by text, numbers numerically). Realized is no longer "info only". Logic `CardShowResults.cs`, sorting in `CardShowsPageViewModel.cs` (`SortResultsCommand`).
+
 ## v0.9.5, 2026-10-20: Results use the owner-balanced model
 
 Owner rejected the measured Results model. The Results tab now matches the HTML dashboard: Date | Show (`label` from results.json, else `event`) | Trans | Portfolio change (`growth_estimate` from `results-display-allocation.json`, by event; falls back to measured end - start if a show has none) | - Show cost | = After cost | Realized (info) | Potential (end + 0.25 x end cash) | Per trans (portfolio change / trans). Start/End/Cash change/Value change columns removed. Walk and card moves unchanged. Core tests updated (`CardShowResultsTests`).

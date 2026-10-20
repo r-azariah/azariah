@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace Azariah.Core.CardShows;
 
 /// <summary>
-/// One finished show, left to right: portfolio change (the owner-balanced estimate) minus the table is what the show
-/// left you with. Realized is information only. Potential is end value plus a quarter of the end cash.
+/// One finished show, left to right. Performance = portfolio change (the owner-balanced estimate) + realized - show cost,
+/// the bottom line. Potential is end value plus a quarter of the end cash.
 /// </summary>
 public sealed record ShowResult(
     DateOnly Date,
@@ -12,18 +12,18 @@ public sealed record ShowResult(
     int Trans,
     decimal PortfolioChange,
     decimal? ShowCost,
-    decimal AfterCost,
     decimal Realized,
     decimal Potential,
-    decimal? PerTrans);
+    decimal? PerTrans,
+    decimal Performance);
 
 /// <summary>The figures above the table. Potential is the latest show's.</summary>
 public sealed record ResultTotals(
     decimal PortfolioChange,
     decimal ShowCosts,
-    decimal AfterCost,
     decimal Realized,
-    decimal? Potential);
+    decimal? Potential,
+    decimal Performance);
 
 /// <summary>One line of the latest show's collection-plus-cash walk (start, changes, end).</summary>
 public sealed record WaterfallStep(string Label, decimal Amount, bool IsTotal, string Detail);
@@ -34,7 +34,7 @@ public sealed record CardMove(string Move, string Card, string Condition, decima
 /// <summary>
 /// Results per show, read from the JSON files Claude keeps in <c>Projects\Card Shows\data</c>:
 /// results.json, results-display-allocation.json (owner-balanced portfolio change), portfolio-change.json, portfolio-moves.json.
-/// Read-only. Money is rounded to cents at every step so the columns add up across.
+/// Read-only. Money is rounded to cents at every step so the columns add up across. Rows come newest first; the page sorts them.
 /// </summary>
 public sealed class CardShowResults
 {
@@ -111,20 +111,20 @@ public sealed class CardShowResults
             // Owner-balanced estimate by event; a show without one falls back to the measured end - start.
             var estimate = (allocation ?? []).FirstOrDefault(a => Same(CardShowBook.Text(a, "event"), name) && CardShowBook.Number(a, "growth_estimate") is not null);
             var portfolioChange = Cents(estimate.ValueKind == JsonValueKind.Object ? CardShowBook.Number(estimate, "growth_estimate") ?? 0 : end - start);
-            var afterCost = Cents(portfolioChange - (cost ?? 0));
+            var performance = Cents(portfolioChange + realized - (cost ?? 0));
             var potential = Cents(end + endCash * (CashFactor - 1m));
             decimal? perTrans = trans > 0 ? Cents(portfolioChange / trans) : null;
 
-            rows.Add(new ShowResult(date, label.Length > 0 ? label : name, trans, portfolioChange, cost, afterCost, realized, potential, perTrans));
+            rows.Add(new ShowResult(date, label.Length > 0 ? label : name, trans, portfolioChange, cost, realized, potential, perTrans, performance));
         }
 
         var ordered = rows.OrderByDescending(r => r.Date).ThenBy(r => r.Show, StringComparer.Ordinal).ToList();
         var totals = new ResultTotals(
             Cents(ordered.Sum(r => r.PortfolioChange)),
             Cents(ordered.Sum(r => r.ShowCost ?? 0)),
-            Cents(ordered.Sum(r => r.AfterCost)),
             Cents(ordered.Sum(r => r.Realized)),
-            ordered.Count > 0 ? ordered[0].Potential : null);
+            ordered.Count > 0 ? ordered[0].Potential : null,
+            Cents(ordered.Sum(r => r.Performance)));
 
         var (latestShow, latestDate, steps) = ReadWalk(change ?? []);
         var latestMoves = ReadMoves(moves ?? [], latestShow);

@@ -73,17 +73,17 @@ public sealed record Figure(string Label, string Text, bool IsNegative = false, 
     public static Figure From(string label, SignedFigure f) => new(label, f.Text, f.IsNegative, f.IsPositive);
 }
 
-/// <summary>One finished show, columns in the order they add up. Realized is information only.</summary>
+/// <summary>One finished show. Performance (last) = portfolio change + realized - show cost.</summary>
 public sealed record ResultRowView(
     string DateText,
     string Show,
     string Trans,
     SignedFigure PortfolioChange,
     string Cost,
-    SignedFigure AfterCost,
     string Realized,
     string Potential,
-    SignedFigure PerTrans)
+    SignedFigure PerTrans,
+    SignedFigure Performance)
 {
     public static ResultRowView From(ShowResult r) => new(
         r.Date.ToString("MMM d", CultureInfo.InvariantCulture),
@@ -91,10 +91,10 @@ public sealed record ResultRowView(
         r.Trans.ToString(CultureInfo.InvariantCulture),
         SignedFigure.Of(r.PortfolioChange),
         r.ShowCost is { } c ? CardShowsPageViewModel.Plain(c) : string.Empty,
-        SignedFigure.Of(r.AfterCost),
         CardShowsPageViewModel.Plain(r.Realized),
         CardShowsPageViewModel.Plain(r.Potential),
-        SignedFigure.OfOrBlank(r.PerTrans));
+        SignedFigure.OfOrBlank(r.PerTrans),
+        SignedFigure.Of(r.Performance));
 }
 
 /// <summary>A line of the latest show's start-to-end walk. Totals are plain, changes are signed.</summary>
@@ -131,6 +131,23 @@ public sealed record CollectionRowView(string Name, string Set, string Condition
         CardShowsPageViewModel.Plain(i.CostEach));
 }
 
+/// <summary>A sortable column of the Results table.</summary>
+public enum ResultColumn
+{
+    Date,
+    Show,
+    Trans,
+    PortfolioChange,
+    ShowCost,
+    Realized,
+    Potential,
+    PerTrans,
+    Performance,
+}
+
+/// <summary>A Results column header: its text (with the sort arrow when it is the sorted one).</summary>
+public sealed record ResultHeaderView(string Text);
+
 public enum CardShowsTab
 {
     Shows,
@@ -160,6 +177,18 @@ public sealed partial class CardShowsPageViewModel : ViewModelBase
     public ObservableCollection<Figure> ResultFigures { get; } = [];
 
     public ObservableCollection<ResultRowView> ResultRows { get; } = [];
+
+    /// <summary>One entry per <see cref="ResultColumn"/>, replaced in place when the sort changes.</summary>
+    public ObservableCollection<ResultHeaderView> ResultHeaders { get; } = [];
+
+    public ResultColumn SortColumn { get; private set; } = ResultColumn.Date;
+
+    public bool SortAscending { get; private set; } = true;
+
+    private IReadOnlyList<ShowResult> _results = [];
+
+    private static readonly string[] HeaderNames =
+        ["Date", "Show", "Trans", "Portfolio change", "\u2212 Show cost", "Realized", "Potential", "Per trans", "Performance"];
 
     public ObservableCollection<WalkRowView> WalkRows { get; } = [];
 
@@ -314,16 +343,15 @@ public sealed partial class CardShowsPageViewModel : ViewModelBase
         if (results.HasResults)
         {
             var t = results.Totals;
+            ResultFigures.Add(Figure.WithSign("Performance", t.Performance));
             ResultFigures.Add(Figure.WithSign("Portfolio change", t.PortfolioChange));
-            ResultFigures.Add(new Figure("− Show costs", "$" + Plain(t.ShowCosts)));
-            ResultFigures.Add(Figure.WithSign("= After cost", t.AfterCost));
-            ResultFigures.Add(new Figure("Realized (info)", "$" + Plain(t.Realized)));
+            ResultFigures.Add(new Figure("\u2212 Show costs", "$" + Plain(t.ShowCosts)));
+            ResultFigures.Add(new Figure("Realized", "$" + Plain(t.Realized)));
             ResultFigures.Add(new Figure("Potential", t.Potential is { } p ? "$" + Plain(p) : string.Empty));
-            foreach (var row in results.Rows)
-            {
-                ResultRows.Add(ResultRowView.From(row));
-            }
         }
+
+        _results = results.Rows;
+        ApplySort();
 
         foreach (var step in results.Steps)
         {
@@ -341,6 +369,64 @@ public sealed partial class CardShowsPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasWalk));
         OnPropertyChanged(nameof(HasMoves));
     }
+
+    /// <summary>Click a header: sort by it, or flip the direction when it is already the sorted column.</summary>
+    [RelayCommand]
+    public void SortResults(string column)
+    {
+        if (!Enum.TryParse<ResultColumn>(column, out var picked))
+        {
+            return;
+        }
+
+        SortAscending = picked != SortColumn || !SortAscending;
+        SortColumn = picked;
+        ApplySort();
+    }
+
+    private void ApplySort()
+    {
+        var asc = SortAscending;
+        IEnumerable<ShowResult> rows = _results;
+        rows = SortColumn switch
+        {
+            ResultColumn.Date => Order(rows, r => r.Date, asc),
+            ResultColumn.Show => Order(rows, r => r.Show.ToLowerInvariant(), asc),
+            ResultColumn.Trans => Order(rows, r => r.Trans, asc),
+            ResultColumn.PortfolioChange => Order(rows, r => r.PortfolioChange, asc),
+            ResultColumn.ShowCost => Order(rows.OrderBy(r => r.ShowCost is null), r => r.ShowCost ?? 0, asc),
+            ResultColumn.Realized => Order(rows, r => r.Realized, asc),
+            ResultColumn.Potential => Order(rows, r => r.Potential, asc),
+            ResultColumn.PerTrans => Order(rows.OrderBy(r => r.PerTrans is null), r => r.PerTrans ?? 0, asc),
+            _ => Order(rows, r => r.Performance, asc),
+        };
+
+        ResultRows.Clear();
+        foreach (var row in rows.ToList())
+        {
+            ResultRows.Add(ResultRowView.From(row));
+        }
+
+        for (var i = 0; i < HeaderNames.Length; i++)
+        {
+            var text = HeaderNames[i] + (i == (int)SortColumn ? (asc ? " \u25B2" : " \u25BC") : string.Empty);
+            if (i < ResultHeaders.Count)
+            {
+                ResultHeaders[i] = new ResultHeaderView(text);
+            }
+            else
+            {
+                ResultHeaders.Add(new ResultHeaderView(text));
+            }
+        }
+    }
+
+    // Ties keep the oldest show first, whichever way the column runs. Missing values (no cost) stay last.
+    private static IOrderedEnumerable<ShowResult> Order<TKey>(IEnumerable<ShowResult> rows, Func<ShowResult, TKey> key, bool asc) =>
+        asc ? rows.OrderBy(key).ThenBy(r => r.Date) : rows.OrderByDescending(key).ThenBy(r => r.Date);
+
+    private static IOrderedEnumerable<ShowResult> Order<TKey>(IOrderedEnumerable<ShowResult> rows, Func<ShowResult, TKey> key, bool asc) =>
+        asc ? rows.ThenBy(key).ThenBy(r => r.Date) : rows.ThenByDescending(key).ThenBy(r => r.Date);
 
     private void RefreshCollection()
     {

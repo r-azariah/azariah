@@ -70,7 +70,7 @@ public sealed class CardShowResultsTests : IDisposable
     }
 
     [Fact]
-    public void A_show_row_uses_the_owner_balanced_portfolio_change_and_adds_up_left_to_right()
+    public void A_show_row_uses_the_owner_balanced_portfolio_change_and_performance_is_the_bottom_line()
     {
         var results = CardShowResults.Load(Seed());
 
@@ -81,7 +81,7 @@ public sealed class CardShowResultsTests : IDisposable
         Assert.Equal(8, turtle.Trans);
         Assert.Equal(-24.72m, turtle.PortfolioChange);
         Assert.Equal(20m, turtle.ShowCost);
-        Assert.Equal(-44.72m, turtle.AfterCost);
+        Assert.Equal(69.06m, turtle.Performance);
         Assert.Equal(113.78m, turtle.Realized);
         Assert.Equal(4350.17m, turtle.Potential);
         Assert.Equal(-3.09m, turtle.PerTrans);
@@ -89,24 +89,23 @@ public sealed class CardShowResultsTests : IDisposable
         var kingston = results.Rows[1];
         Assert.Equal(74m, kingston.PortfolioChange);
         Assert.Equal(74m, kingston.ShowCost);
-        Assert.Equal(0m, kingston.AfterCost);
+        Assert.Equal(47.63m, kingston.Performance);
         Assert.Equal(4570.08m, kingston.Potential);
         Assert.Equal(6.73m, kingston.PerTrans);
 
         foreach (var row in results.Rows)
         {
-            Assert.Equal(row.PortfolioChange - (row.ShowCost ?? 0), row.AfterCost);
+            Assert.Equal(row.PortfolioChange + row.Realized - (row.ShowCost ?? 0), row.Performance);
         }
     }
 
     [Fact]
-    public void Realized_is_information_only_and_never_added_to_the_portfolio_change()
+    public void Performance_adds_realized_to_the_portfolio_change_and_takes_off_the_show_cost()
     {
         var row = CardShowResults.Load(Seed()).Rows[0];
 
         Assert.Equal(113.78m, row.Realized);
-        Assert.NotEqual(row.PortfolioChange + row.Realized - 20m, row.AfterCost);
-        Assert.Equal(row.PortfolioChange - 20m, row.AfterCost);
+        Assert.Equal(row.PortfolioChange + row.Realized - 20m, row.Performance);
     }
 
     [Fact]
@@ -116,10 +115,10 @@ public sealed class CardShowResultsTests : IDisposable
 
         Assert.Equal(49.28m, totals.PortfolioChange);
         Assert.Equal(94m, totals.ShowCosts);
-        Assert.Equal(-44.72m, totals.AfterCost);
         Assert.Equal(161.41m, totals.Realized);
         Assert.Equal(4350.17m, totals.Potential);
-        Assert.Equal(totals.PortfolioChange - totals.ShowCosts, totals.AfterCost);
+        Assert.Equal(116.69m, totals.Performance);
+        Assert.Equal(totals.PortfolioChange + totals.Realized - totals.ShowCosts, totals.Performance);
     }
 
     [Fact]
@@ -146,7 +145,7 @@ public sealed class CardShowResultsTests : IDisposable
         Assert.Equal(5m, row.PortfolioChange);
         Assert.Null(row.ShowCost);
         Assert.Null(row.PerTrans);
-        Assert.Equal(5m, row.AfterCost);
+        Assert.Equal(7m, row.Performance);
         Assert.Equal(115m, row.Potential);
     }
 
