@@ -10,6 +10,27 @@ Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in
 what you propose, then use the findings to improve AZARIAH.
 (Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
 
+## v0.9.4, 2026-10-20: in-app card show dashboard
+
+Owner: "i dont like how pressing dashboard open an html instead of just displaying it there". The Card shows
+page now has three tabs (same ToggleButton style as Roblox > Games/General): **Shows** (the old page), **Results**,
+**Collection**. Native Avalonia from the JSON in `Projects\Card Shows\data` (no WebView: nothing from the USB runs;
+read-only). The old Dashboard button is now **Open HTML** (still Shell.Open of the offline file); Online, Folder,
+Reload stay. Home > Card shows and the sidebar land on the same page.
+- Results (owner's Profit Calc model, measured, NOT the allocation estimates; `results-display-allocation.json` is
+  no longer read): Date | Show | Trans | Start | End | = Growth (End - Start) | Cash change (end_cash - start_cash) |
+  Value change (Growth - Cash change) | - Show cost (shows.json price by event) | = After cost (Growth - cost) |
+  Realized (info only, already inside Growth, never added) | Potential (End + 0.25 x end_cash) | Per trans
+  (Growth / Trans). Totals row above: Growth, Show costs, After cost, Realized, Potential (latest show). Below:
+  `portfolio-change.json` walk and `portfolio-moves.json` cards for the newest show. Everything computed from the
+  files, rounded to cents. Gains green, losses red, every change signed (U+2212 for minus).
+- Collection: `collection.json` value is per copy (x quantity), `cost_each`/`cost_total` for paid. Market value,
+  paid, unrealized, entries/copies, raw/graded/sealed split, scrollable top-items list by value each.
+- Also: the em dash placeholders on the Shows tab (Cost/Pay/Due now) are blank now (owner rule).
+- Code: `Azariah.Core/CardShows/CardShowResults.cs`, `CardCollection.cs`; tests `CardShowResultsTests.cs`,
+  `CardShowsPageTests` (renders `cardshows-results.png`, `cardshows-collection.png` with `AZARIAH_SCREENSHOTS`).
+- Still not mine, uncommitted: `ChromeMockups.cs` and the `SeedData.cs` OpenMain refactor.
+
 ## v0.9.3, 2026-10-19 (laptop): Card shows in the sidebar
 
 Owner wanted Card shows as a pressable sidebar place under Home (screenshot of the sidebar,

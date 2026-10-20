@@ -15,6 +15,19 @@
       <Setter Property="FontSize" Value="22" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <!-- Number columns: right aligned, header wraps onto a second line instead of getting cut off. -->
+    <Style Selector="TextBlock.n">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin" Value="8,0,0,0" />
+    </Style>
+    <Style Selector="TextBlock.hn">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+    </Style>
+    <Style Selector="TextBlock.total">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
     <Style Selector="Border.rule">
       <Setter Property="BorderBrush" Value="{DynamicResource AzBorderBrush}" />
       <Setter Property="BorderThickness" Value="0,0,0,1" />
@@ -25,86 +38,272 @@
   <ScrollViewer>
     <StackPanel Spacing="28" Margin="24,24,40,32" MaxWidth="1240" HorizontalAlignment="Left">
       <StackPanel Spacing="10">
-        <StackPanel Orientation="Horizontal" Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="24">
           <TextBlock Classes="h1" Text="Card shows" />
-          <Button Classes="ghost" Content="Dashboard" Command="{Binding OpenDashboardCommand}" IsVisible="{Binding HasDashboard}" VerticalAlignment="Bottom" />
-          <Button Classes="ghost" Content="Online" Command="{Binding OpenOnlineCommand}" IsVisible="{Binding HasOnline}" VerticalAlignment="Bottom" />
-          <Button Classes="ghost" Content="Folder" Command="{Binding OpenFolderCommand}" VerticalAlignment="Bottom" />
-          <Button Classes="ghost" Content="Reload" Command="{Binding RefreshCommand}" VerticalAlignment="Bottom" />
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom" Margin="0,0,0,4">
+            <ToggleButton Content="Shows" Padding="12,4" IsChecked="{Binding IsShowsTab, Mode=OneWay}" Command="{Binding OpenShowsTabCommand}" />
+            <ToggleButton Content="Results" Padding="12,4" IsChecked="{Binding IsResultsTab, Mode=OneWay}" Command="{Binding OpenResultsTabCommand}" />
+            <ToggleButton Content="Collection" Padding="12,4" IsChecked="{Binding IsCollectionTab, Mode=OneWay}" Command="{Binding OpenCollectionTabCommand}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+            <Button Classes="ghost" Content="Open HTML" Command="{Binding OpenDashboardCommand}" IsVisible="{Binding HasDashboard}" ToolTip.Tip="Opens the offline dashboard file in your browser" />
+            <Button Classes="ghost" Content="Online" Command="{Binding OpenOnlineCommand}" IsVisible="{Binding HasOnline}" />
+            <Button Classes="ghost" Content="Folder" Command="{Binding OpenFolderCommand}" />
+            <Button Classes="ghost" Content="Reload" Command="{Binding RefreshCommand}" />
+          </StackPanel>
         </StackPanel>
-        <TextBlock Classes="val" Text="{Binding Summary}" />
         <TextBlock Classes="danger" FontSize="13" Text="{Binding Status}" IsVisible="{Binding HasStatus}" TextWrapping="Wrap" />
       </StackPanel>
 
-      <Grid ColumnDefinitions="Auto,40,Auto,40,Auto,40,Auto" IsVisible="{Binding HasShows}">
-        <StackPanel Spacing="2">
-          <TextBlock Classes="key" Text="Due now" />
-          <TextBlock Classes="big warning" Text="{Binding DueNowText}" />
-        </StackPanel>
-        <StackPanel Grid.Column="2" Spacing="2">
-          <TextBlock Classes="key" Text="Due at the show" />
-          <TextBlock Classes="big" Text="{Binding DueAtShowsText}" />
-        </StackPanel>
-        <StackPanel Grid.Column="4" Spacing="2">
-          <TextBlock Classes="key" Text="If pending shows accept" />
-          <TextBlock Classes="big" Text="{Binding NotBilledText}" />
-        </StackPanel>
-        <StackPanel Grid.Column="6" Spacing="2">
-          <TextBlock Classes="key" Text="Spent on past tables" />
-          <TextBlock Classes="big" Text="{Binding SpentText}" />
-        </StackPanel>
-      </Grid>
+      <!-- Shows -->
+      <StackPanel Spacing="28" IsVisible="{Binding IsShowsTab}">
+        <TextBlock Classes="val" Text="{Binding Summary}" IsVisible="{Binding HasShows}" />
 
-      <StackPanel Spacing="0" IsVisible="{Binding HasShows}">
-        <TextBlock Classes="h3" Text="Upcoming" Margin="0,0,0,6" />
-        <Grid ColumnDefinitions="150,*,170,130,90,80,120,80" Margin="0,0,0,4">
-          <TextBlock Classes="key" Text="Date" />
-          <TextBlock Grid.Column="1" Classes="key" Text="Show" />
-          <TextBlock Grid.Column="2" Classes="key" Text="Town" />
-          <TextBlock Grid.Column="3" Classes="key" Text="Application" />
-          <TextBlock Grid.Column="4" Classes="key" Text="Cost" HorizontalAlignment="Right" />
-          <TextBlock Grid.Column="5" Classes="key" Text="Pay" Margin="16,0,0,0" />
-          <TextBlock Grid.Column="6" Classes="key" Text="Paid?" />
-          <TextBlock Grid.Column="7" Classes="key" Text="Due now" HorizontalAlignment="Right" />
+        <Grid ColumnDefinitions="Auto,40,Auto,40,Auto,40,Auto" IsVisible="{Binding HasShows}">
+          <StackPanel Spacing="2">
+            <TextBlock Classes="key" Text="Due now" />
+            <TextBlock Classes="big warning" Text="{Binding DueNowText}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="2">
+            <TextBlock Classes="key" Text="Due at the show" />
+            <TextBlock Classes="big" Text="{Binding DueAtShowsText}" />
+          </StackPanel>
+          <StackPanel Grid.Column="4" Spacing="2">
+            <TextBlock Classes="key" Text="If pending shows accept" />
+            <TextBlock Classes="big" Text="{Binding NotBilledText}" />
+          </StackPanel>
+          <StackPanel Grid.Column="6" Spacing="2">
+            <TextBlock Classes="key" Text="Spent on past tables" />
+            <TextBlock Classes="big" Text="{Binding SpentText}" />
+          </StackPanel>
         </Grid>
-        <ItemsControl ItemsSource="{Binding Upcoming}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="vm:CardShowRow">
-              <Border Classes="rule" ToolTip.Tip="{Binding Note}">
-                <Grid ColumnDefinitions="150,*,170,130,90,80,120,80">
-                  <TextBlock Classes="val" Text="{Binding DateText}" />
-                  <TextBlock Grid.Column="1" Classes="val" Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
-                  <TextBlock Grid.Column="2" Classes="key" Text="{Binding Town}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="3" Classes="val" Classes.danger="{Binding IsBad}" Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="4" Classes="val" Text="{Binding CostText}" HorizontalAlignment="Right" />
-                  <TextBlock Grid.Column="5" Classes="key" Text="{Binding PayText}" Margin="16,0,0,0" />
-                  <TextBlock Grid.Column="6" Classes="val" Classes.success="{Binding IsOk}" Classes.warning="{Binding IsWarn}" Text="{Binding PaidText}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="7" Classes="val" Text="{Binding DueText}" HorizontalAlignment="Right" />
-                </Grid>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasShows}">
+          <TextBlock Classes="h3" Text="Upcoming" Margin="0,0,0,6" />
+          <Grid ColumnDefinitions="150,*,170,130,90,80,120,80" Margin="0,0,0,4">
+            <TextBlock Classes="key" Text="Date" />
+            <TextBlock Grid.Column="1" Classes="key" Text="Show" />
+            <TextBlock Grid.Column="2" Classes="key" Text="Town" />
+            <TextBlock Grid.Column="3" Classes="key" Text="Application" />
+            <TextBlock Grid.Column="4" Classes="key" Text="Cost" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="5" Classes="key" Text="Pay" Margin="16,0,0,0" />
+            <TextBlock Grid.Column="6" Classes="key" Text="Paid?" />
+            <TextBlock Grid.Column="7" Classes="key" Text="Due now" HorizontalAlignment="Right" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Upcoming}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CardShowRow">
+                <Border Classes="rule" ToolTip.Tip="{Binding Note}">
+                  <Grid ColumnDefinitions="150,*,170,130,90,80,120,80">
+                    <TextBlock Classes="val" Text="{Binding DateText}" />
+                    <TextBlock Grid.Column="1" Classes="val" Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="2" Classes="key" Text="{Binding Town}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="3" Classes="val" Classes.danger="{Binding IsBad}" Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="4" Classes="val" Text="{Binding CostText}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="5" Classes="key" Text="{Binding PayText}" Margin="16,0,0,0" />
+                    <TextBlock Grid.Column="6" Classes="val" Classes.success="{Binding IsOk}" Classes.warning="{Binding IsWarn}" Text="{Binding PaidText}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="7" Classes="val" Text="{Binding DueText}" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasShows}">
+          <TextBlock Classes="h3" Text="Past" Margin="0,0,0,6" />
+          <ItemsControl ItemsSource="{Binding Past}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CardShowRow">
+                <Border Classes="rule" ToolTip.Tip="{Binding Note}">
+                  <Grid ColumnDefinitions="150,*,170,130,90,80,120,80">
+                    <TextBlock Classes="key" Text="{Binding DateText}" />
+                    <TextBlock Grid.Column="1" Classes="val" Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="2" Classes="key" Text="{Binding Town}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="3" Classes="val" Classes.success="{Binding IsOk}" Classes.muted="{Binding !IsOk}" Text="{Binding Status}" />
+                    <TextBlock Grid.Column="4" Classes="val" Text="{Binding CostText}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="5" Grid.ColumnSpan="2" Classes="key" Text="{Binding TableText}" Margin="16,0,0,0" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
       </StackPanel>
 
-      <StackPanel Spacing="0" IsVisible="{Binding HasShows}">
-        <TextBlock Classes="h3" Text="Past" Margin="0,0,0,6" />
-        <ItemsControl ItemsSource="{Binding Past}">
+      <!-- Results: every row reads left to right and adds up -->
+      <StackPanel Spacing="28" IsVisible="{Binding IsResultsTab}">
+        <TextBlock Classes="key" Text="{Binding ResultsNote}" IsVisible="{Binding HasResultsNote}" TextWrapping="Wrap" />
+
+        <ItemsControl ItemsSource="{Binding ResultFigures}" IsVisible="{Binding HasResults}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="vm:CardShowRow">
-              <Border Classes="rule" ToolTip.Tip="{Binding Note}">
-                <Grid ColumnDefinitions="150,*,170,130,90,80,120,80">
-                  <TextBlock Classes="key" Text="{Binding DateText}" />
-                  <TextBlock Grid.Column="1" Classes="val" Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
-                  <TextBlock Grid.Column="2" Classes="key" Text="{Binding Town}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="3" Classes="val" Classes.success="{Binding IsOk}" Classes.muted="{Binding !IsOk}" Text="{Binding Status}" />
-                  <TextBlock Grid.Column="4" Classes="val" Text="{Binding CostText}" HorizontalAlignment="Right" />
-                  <TextBlock Grid.Column="5" Grid.ColumnSpan="2" Classes="key" Text="{Binding TableText}" Margin="16,0,0,0" />
-                </Grid>
-              </Border>
+            <DataTemplate DataType="vm:Figure">
+              <StackPanel Spacing="2" Margin="0,0,12,0">
+                <TextBlock Classes="key" Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="big" FontSize="20" Classes.danger="{Binding IsNegative}" Classes.success="{Binding IsPositive}" Text="{Binding Text}" />
+              </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasResults}">
+          <TextBlock Classes="h3" Text="Shows" Margin="0,0,0,6" />
+          <Grid ColumnDefinitions="54,*,44,72,72,72,72,76,64,76,72,76,64" Margin="0,0,0,4">
+            <TextBlock Classes="key hn" Text="Date" />
+            <TextBlock Grid.Column="1" Classes="key hn" Text="Show" />
+            <TextBlock Grid.Column="2" Classes="key hn n" Text="Trans" />
+            <TextBlock Grid.Column="3" Classes="key hn n" Text="Start" />
+            <TextBlock Grid.Column="4" Classes="key hn n" Text="End" />
+            <TextBlock Grid.Column="5" Classes="key hn n" Text="= Growth" />
+            <TextBlock Grid.Column="6" Classes="key hn n" Text="Cash change" />
+            <TextBlock Grid.Column="7" Classes="key hn n" Text="Value change" />
+            <TextBlock Grid.Column="8" Classes="key hn n" Text="&#x2212; Show cost" />
+            <TextBlock Grid.Column="9" Classes="key hn n" Text="= After cost" />
+            <TextBlock Grid.Column="10" Classes="key hn n" Text="Realized" />
+            <TextBlock Grid.Column="11" Classes="key hn n" Text="Potential" />
+            <TextBlock Grid.Column="12" Classes="key hn n" Text="Per trans" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding ResultRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:ResultRowView">
+                <Border Classes="rule">
+                  <Grid ColumnDefinitions="54,*,44,72,72,72,72,76,64,76,72,76,64">
+                    <TextBlock Classes="key" Text="{Binding DateText}" />
+                    <TextBlock Grid.Column="1" Classes="val" Text="{Binding Show}" ToolTip.Tip="{Binding Show}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Classes="val n" Text="{Binding Trans}" />
+                    <TextBlock Grid.Column="3" Classes="val n" Text="{Binding Start}" />
+                    <TextBlock Grid.Column="4" Classes="val n" Text="{Binding End}" />
+                    <TextBlock Grid.Column="5" Classes="val n total" Classes.danger="{Binding Growth.IsNegative}" Classes.success="{Binding Growth.IsPositive}" Text="{Binding Growth.Text}" />
+                    <TextBlock Grid.Column="6" Classes="val n" Classes.danger="{Binding CashChange.IsNegative}" Classes.success="{Binding CashChange.IsPositive}" Text="{Binding CashChange.Text}" />
+                    <TextBlock Grid.Column="7" Classes="val n" Classes.danger="{Binding ValueChange.IsNegative}" Classes.success="{Binding ValueChange.IsPositive}" Text="{Binding ValueChange.Text}" />
+                    <TextBlock Grid.Column="8" Classes="val n" Text="{Binding Cost}" />
+                    <TextBlock Grid.Column="9" Classes="val n total" Classes.danger="{Binding AfterCost.IsNegative}" Classes.success="{Binding AfterCost.IsPositive}" Text="{Binding AfterCost.Text}" />
+                    <TextBlock Grid.Column="10" Classes="key n" Text="{Binding Realized}" />
+                    <TextBlock Grid.Column="11" Classes="val n" Text="{Binding Potential}" />
+                    <TextBlock Grid.Column="12" Classes="val n" Classes.danger="{Binding PerTrans.IsNegative}" Classes.success="{Binding PerTrans.IsPositive}" Text="{Binding PerTrans.Text}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasWalk}">
+          <TextBlock Classes="h3" Text="{Binding WalkTitle}" Margin="0,0,0,6" TextWrapping="Wrap" />
+          <ItemsControl ItemsSource="{Binding WalkRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:WalkRowView">
+                <Border Classes="rule">
+                  <Grid ColumnDefinitions="230,110,*">
+                    <TextBlock Classes="val" Classes.total="{Binding IsTotal}" Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Classes="val n" Classes.total="{Binding IsTotal}" Classes.danger="{Binding Amount.IsNegative}" Classes.success="{Binding Amount.IsPositive}" Text="{Binding Amount.Text}" />
+                    <TextBlock Grid.Column="2" Classes="key" Text="{Binding Detail}" TextWrapping="Wrap" Margin="24,0,0,0" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasMoves}">
+          <Grid ColumnDefinitions="100,*,150,84,112,92" Margin="0,0,0,4">
+            <TextBlock Classes="key hn" Text="Move" />
+            <TextBlock Grid.Column="1" Classes="key hn" Text="Card" />
+            <TextBlock Grid.Column="2" Classes="key hn" Text="Condition" Margin="8,0,0,0" />
+            <TextBlock Grid.Column="3" Classes="key hn n" Text="Market" />
+            <TextBlock Grid.Column="4" Classes="key hn n" Text="Sold for / cost" />
+            <TextBlock Grid.Column="5" Classes="key hn n" Text="Realized" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding MoveRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:MoveRowView">
+                <Border Classes="rule">
+                  <Grid ColumnDefinitions="100,*,150,84,112,92">
+                    <TextBlock Classes="key" Text="{Binding Move}" />
+                    <TextBlock Grid.Column="1" Classes="val" Text="{Binding Card}" ToolTip.Tip="{Binding Card}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Classes="key" Text="{Binding Condition}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                    <TextBlock Grid.Column="3" Classes="val n" Text="{Binding Market}" />
+                    <TextBlock Grid.Column="4" Classes="val n" Text="{Binding Amount}" />
+                    <TextBlock Grid.Column="5" Classes="val n" Classes.danger="{Binding Realized.IsNegative}" Classes.success="{Binding Realized.IsPositive}" Text="{Binding Realized.Text}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Collection: the Collectr EVERYTHING export -->
+      <StackPanel Spacing="28" IsVisible="{Binding IsCollectionTab}">
+        <TextBlock Classes="key" Text="{Binding CollectionNote}" IsVisible="{Binding HasCollectionNote}" TextWrapping="Wrap" />
+
+        <ItemsControl ItemsSource="{Binding CollectionFigures}" IsVisible="{Binding HasCollection}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:Figure">
+              <StackPanel Spacing="2" Margin="0,0,12,0">
+                <TextBlock Classes="key" Text="{Binding Label}" />
+                <TextBlock Classes="big" Classes.danger="{Binding IsNegative}" Classes.success="{Binding IsPositive}" Text="{Binding Text}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ItemsControl ItemsSource="{Binding KindFigures}" IsVisible="{Binding HasCollection}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="56" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:Figure">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="key" Text="{Binding Label}" />
+                <TextBlock Classes="big" FontSize="18" Text="{Binding Text}" />
+                <TextBlock Classes="key" FontSize="12" Text="{Binding Sub}" IsVisible="{Binding HasSub}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <StackPanel Spacing="0" IsVisible="{Binding HasCollection}">
+          <TextBlock Classes="h3" Text="{Binding ItemsTitle}" Margin="0,0,0,6" />
+          <Grid ColumnDefinitions="*,200,150,52,92,92" Margin="0,0,16,4">
+            <TextBlock Classes="key hn" Text="Name" />
+            <TextBlock Grid.Column="1" Classes="key hn" Text="Set" Margin="8,0,0,0" />
+            <TextBlock Grid.Column="2" Classes="key hn" Text="Condition" Margin="8,0,0,0" />
+            <TextBlock Grid.Column="3" Classes="key hn n" Text="Qty" />
+            <TextBlock Grid.Column="4" Classes="key hn n" Text="Value each" />
+            <TextBlock Grid.Column="5" Classes="key hn n" Text="Cost each" />
+          </Grid>
+          <ScrollViewer Height="440" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding CollectionRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:CollectionRowView">
+                  <Border Classes="rule" Margin="0,0,16,0">
+                    <Grid ColumnDefinitions="*,200,150,52,92,92">
+                      <TextBlock Classes="val" Text="{Binding Name}" ToolTip.Tip="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="1" Classes="key" Text="{Binding Set}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                      <TextBlock Grid.Column="2" Classes="key" Text="{Binding Condition}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                      <TextBlock Grid.Column="3" Classes="val n" Text="{Binding Quantity}" />
+                      <TextBlock Grid.Column="4" Classes="val n" Text="{Binding ValueEach}" />
+                      <TextBlock Grid.Column="5" Classes="val n" Text="{Binding CostEach}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
       </StackPanel>
     </StackPanel>
   </ScrollViewer>

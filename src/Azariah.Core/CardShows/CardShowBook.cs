@@ -179,7 +179,7 @@ public sealed class CardShowBook
             Text(row, "pay_note"));
     }
 
-    private static string Text(JsonElement row, string name) =>
+    internal static string Text(JsonElement row, string name) =>
         row.TryGetProperty(name, out var v) ? v.ValueKind switch
         {
             JsonValueKind.String => v.GetString() ?? string.Empty,
@@ -187,7 +187,7 @@ public sealed class CardShowBook
             _ => string.Empty,
         } : string.Empty;
 
-    private static decimal? Number(JsonElement row, string name)
+    internal static decimal? Number(JsonElement row, string name)
     {
         if (!row.TryGetProperty(name, out var v))
         {
@@ -202,8 +202,40 @@ public sealed class CardShowBook
         };
     }
 
-    private static bool TryDate(string text, out DateOnly date) =>
+    internal static bool TryDate(string text, out DateOnly date) =>
         DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+
+    /// <summary>
+    /// The rows of a JSON list in <c>data\</c>. Null when the file is missing; a problem text when it is broken.
+    /// Read-only: nothing here ever writes to the folder.
+    /// </summary>
+    internal static List<JsonElement>? ReadRows(string folder, string file, out string? problem)
+    {
+        problem = null;
+        var path = Path.Combine(folder, "data", file);
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var stream = File.OpenRead(path);
+            using var doc = JsonDocument.Parse(stream, new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                problem = file + " isn't a list.";
+                return null;
+            }
+
+            return doc.RootElement.EnumerateArray().Where(r => r.ValueKind == JsonValueKind.Object).Select(r => r.Clone()).ToList();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            problem = "Couldn't read " + file + ": " + ex.Message;
+            return null;
+        }
+    }
 
     private string? ExistingFile(string name)
     {
