@@ -59,6 +59,26 @@ public class CardShowsPageTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void Cash_at_show_is_not_counted_as_a_bill_due_now()
+    {
+        const string shows = """
+            [
+              {"event":"Online booking","start":"2026-10-24","when":"Upcoming","status":"Unpaid","price":39,"payment":"Full","due_now":42.19,"paid":"Unpaid"},
+              {"event":"Turtle Boyz November Show","start":"2026-11-23","when":"Upcoming","status":"Accepted","price":45,"payment":"Cash at show","due_now":0,"due_at_show":45,"paid":"Unpaid"}
+            ]
+            """;
+        var (window, workspace, _) = Open(shows);
+        workspace.OpenCardShows();
+        Settle();
+        var page = Assert.IsType<CardShowsPageViewModel>(workspace.CurrentPage);
+        Assert.Contains("$42.19 due now for 1 show", page.Summary, StringComparison.Ordinal);
+        Assert.Equal("$42.19", page.DueNowText);
+        Assert.Equal("$45", page.DueAtShowsText);
+        Assert.Equal(2, page.Upcoming.Count);
+        window.Close();
+    }
+
     private const string PastShows = """
         [
           {"event":"Kingston MA (Gone Broke)","start":"2026-09-20","when":"Past","status":"Had table","price":74,"paid":"Paid","table":"4"},

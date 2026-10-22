@@ -469,7 +469,7 @@ public sealed partial class CardShowsPageViewModel : ViewModelBase
 
     internal static string SummaryFor(CardShowBook book)
     {
-        var unpaid = book.Shows.Count(s => s.NeedsPayment);
+        var unpaid = book.Shows.Count(s => s.NeedsPayment && s.DueNow > 0);
         var next = book.Upcoming.FirstOrDefault();
         var parts = new List<string>();
         if (next is not null)

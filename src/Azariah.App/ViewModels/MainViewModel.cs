@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Azariah.App.Platform;
 using Azariah.App.Services;
+using Azariah.Core.Devices;
 using Azariah.Core.Drive;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -12,6 +14,7 @@ public sealed partial class MainViewModel : ViewModelBase
     private readonly IVolumeProvider _volumes;
     private readonly DriveRootLocator _locator;
     private DriveMonitor? _monitor;
+    private WorkspaceViewModel? _previewFrom;
     private bool _shutDown;
 
     public MainViewModel(LocateResult located, IVolumeProvider volumes, DriveRootLocator locator)
@@ -23,7 +26,7 @@ public sealed partial class MainViewModel : ViewModelBase
 
         if (located is { Outcome: LocateOutcome.Found, Root: { } root, Marker: { } marker })
         {
-            OpenWorkspace(root, marker);
+            OpenDrive(root, marker);
         }
         else
         {
@@ -52,6 +55,25 @@ public sealed partial class MainViewModel : ViewModelBase
 
     public void AttachWindow(TopLevel window) => Ui.TopLevel = window;
 
+    /// <summary>
+    /// A drive was found. On one of the owner's own computers this opens the full workspace; on any
+    /// other PC it opens the guest page. The device list lives on the drive (<c>.azariah/devices.json</c>);
+    /// see <see cref="OwnerDevicesStore"/> for why this is a convenience signal, not a security boundary.
+    /// </summary>
+    public void OpenDrive(string root, DriveMarker marker, string? pageKey = null)
+    {
+        var layout = new DriveLayout(root);
+        Directory.CreateDirectory(layout.SystemFolder);
+        if (new OwnerDevicesStore(layout).IsOwnerDevice(MachineIdentity.Current))
+        {
+            OpenWorkspace(root, marker, pageKey);
+        }
+        else
+        {
+            OpenGuest(root, marker);
+        }
+    }
+
     internal void OpenWorkspace(string root, DriveMarker marker, string? pageKey = null)
     {
         var layout = new DriveLayout(root);
@@ -62,6 +84,11 @@ public sealed partial class MainViewModel : ViewModelBase
         var session = new WorkspaceSession(layout, marker, _volumes, DialogService, Ui, Shell);
         App.ApplyTheme(session.Settings.Theme);
         var workspace = new WorkspaceViewModel(session);
+        workspace.PreviewGuestRequested += () =>
+        {
+            _previewFrom = workspace;
+            Current = new GuestViewModel(session, ExitGuestPreview);
+        };
         if (pageKey is not null)
         {
             workspace.Navigate(pageKey);
@@ -71,6 +98,26 @@ public sealed partial class MainViewModel : ViewModelBase
         WindowTitle = Brand.Name;
         session.Log.Info("Workspace opened.");
         StartMonitor(root, marker.DriveId);
+    }
+
+    private void OpenGuest(string root, DriveMarker marker)
+    {
+        var layout = new DriveLayout(root);
+        var session = new WorkspaceSession(layout, marker, _volumes, DialogService, Ui, Shell);
+        App.ApplyTheme(session.Settings.Theme);
+        Current = new GuestViewModel(session);
+        WindowTitle = Brand.Name;
+        session.Log.Info("Guest page opened (not an owner device).");
+        StartMonitor(root, marker.DriveId);
+    }
+
+    private void ExitGuestPreview()
+    {
+        if (_previewFrom is { } workspace)
+        {
+            Current = workspace;
+            _previewFrom = null;
+        }
     }
 
     private void StartMonitor(string root, Guid driveId)

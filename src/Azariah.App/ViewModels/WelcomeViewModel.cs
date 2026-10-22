@@ -74,7 +74,7 @@ public sealed partial class WelcomeViewModel : ViewModelBase
             IsBusy = true;
             var marker = new DriveInitializer(_volumes).Initialize(CandidateRoot, name);
             _scan.Stop();
-            _main.OpenWorkspace(CandidateRoot, marker);
+            _main.OpenDrive(CandidateRoot, marker);
         }
         catch (Exception ex)
         {
@@ -105,7 +105,7 @@ public sealed partial class WelcomeViewModel : ViewModelBase
         if (DriveMarkerStore.TryRead(root) is { } marker)
         {
             _scan.Stop();
-            _main.OpenWorkspace(root, marker);
+            _main.OpenDrive(root, marker);
             return;
         }
 
@@ -119,7 +119,7 @@ public sealed partial class WelcomeViewModel : ViewModelBase
     private void Open(DriveCandidate candidate)
     {
         _scan.Stop();
-        _main.OpenWorkspace(candidate.Root, candidate.Marker);
+        _main.OpenDrive(candidate.Root, candidate.Marker);
     }
 
     private void ScanTick()
@@ -133,7 +133,7 @@ public sealed partial class WelcomeViewModel : ViewModelBase
         if (found.Count == 1)
         {
             _scan.Stop();
-            _main.OpenWorkspace(found[0].Root, found[0].Marker);
+            _main.OpenDrive(found[0].Root, found[0].Marker);
         }
         else if (found.Count != Candidates.Count)
         {

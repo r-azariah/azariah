@@ -31,6 +31,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     public IReadOnlyList<ThemePreference> Themes { get; } = [ThemePreference.Dark, ThemePreference.Light, ThemePreference.System];
 
+    [RelayCommand]
+    private void PreviewGuest() => _workspace.RequestPreviewGuest();
+
     [ObservableProperty]
     public partial string DriveName { get; set; }
 

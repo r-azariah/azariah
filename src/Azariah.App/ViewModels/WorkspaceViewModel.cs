@@ -54,6 +54,11 @@ public sealed partial class WorkspaceViewModel : ViewModelBase
 
     public WorkspaceSession Session { get; }
 
+    /// <summary>Raised when the owner asks to preview the guest page (Settings > Preview guest page).</summary>
+    public event Action? PreviewGuestRequested;
+
+    public void RequestPreviewGuest() => PreviewGuestRequested?.Invoke();
+
     public FilesPageViewModel Files { get; }
 
     public RobloxPageViewModel Roblox { get; }

@@ -1,5 +1,35 @@
 # Checkpoint / TODO
 
+## October 22, 2026 | Claude, laptop | v0.9.8 outward/guest page + device identity
+
+Built the outward-facing guest page and owner-device detection. Full spec and remaining work are in
+`docs/OUTWARD-SECURITY.md` (read that first for this feature).
+- **Owner vs guest routing:** `MainViewModel.OpenDrive` shows the full workspace on the owner's PCs and
+  the guest page on any other PC. Owner devices live on the drive in `.azariah/devices.json`
+  (`src/Azariah.Core/Devices/`). Seeded with LAPTOPBRUH (real MachineGuid) + ZOTAC-FRAKENST (name only,
+  hardens on its first owner run). Not a security boundary; real protection is the planned encryption.
+- **Guest page** (`GuestViewModel` / `GuestView.axaml`): HELLO / From [AZARIAH] greeting + tiles. Working:
+  Windows makeover (runs the Windhawk kit), Biggest files on this PC (`BigFilesScanner`), Shared files
+  (Setup Kit). Soon tiles: Optimize PC, Local AI, Virus check.
+- **Preview as guest:** Settings > Preview guest page (banner + Exit preview).
+- Tests: 87 pass (68 core, 19 app). New `OwnerDevicesTests`, `GuestPageTests`.
+- **NEXT (owner asked 2026-10-22), not built, see docs/OUTWARD-SECURITY.md:**
+  1. Password unlock on a non-owner PC. Test password `88801550` (placeholder, never store plaintext).
+     Type anywhere to unlock; Enter/Tab-twice resets the attempt; 5 wrong/resets => flash ejects and locks
+     for 10 minutes (wall-clock, recorded on the flash so a re-plug stays locked).
+  2. Encryption of the owner's private files (names/sizes/contents) so a guest can't read them without the
+     password; owner devices auto-unlock. Standard crypto only (Argon2id + AES-256-GCM), format tests first,
+     read SECURITY.md.
+  3. Finish the Soon tiles (Optimize PC, Local AI, Virus check).
+
+## October 21, 2026 | Codex | this PC updated to v0.9.7
+
+Owner reported Dashboard opening an HTML file instead of appearing inside AZARIAH. Cause confirmed: this PC auto-launched v0.9.3, while the flash already held v0.9.7 with native Shows / Results / Collection tabs. Installed the existing verified flash build into this PC through AZARIAH's own --finish-update helper, targeting only the local executable. Flash binary and application source code were not changed. Local backup retained at C:\Users\AZARIAH\AppData\Local\Azariah\backups\2026-10-21-b4ec9f35.
+
+Installed executable and flash SHA256 both E530E3F9FB4B51BCA0214ED4EC98303815A0402808AA082A86B689273FF5A239. Running GUI and watcher both report0.9.7.0; GUI title [AZARIAH], process27088 at verification; log says Update installed. Card shows now exposes its native Collection and Results tabs; Open HTML remains the separately labeled browser-copy action. Current shows data including Mill City Nov1 $60 paid Cash App is preserved. No source tests/build were needed for deploying the already-built release; no claim of live native UI navigation/visual inspection. Pre-existing uncommitted repo work was preserved.
+
+This update applies to the AZARIAH user PC only. Other PCs need their own verified update when behind; the watcher intentionally does not install USB code automatically.
+
 Read this first when picking up the project in a new session.
 
 ## Pending owner reference, 2026-10-03
@@ -9,6 +39,10 @@ Files: `Projects/AZARIAH/References/Pending/2026-10-03/` on the drive (hashes in
 `CLAUDE.md`). Not analyzed yet. On the laptop: study them, note what you observe separately from
 what you propose, then use the findings to improve AZARIAH.
 (Rewritten 2026-10-03 22:30 after drive damage wiped this file; the original 02:55 wording was lost.)
+
+## v0.9.7, 2026-10-20: cash bookings and current show data
+
+The Card shows/Home summary counts only unpaid bookings with a positive DueNow amount as bills due now. A future cash-at-show booking stays unpaid and contributes to Due at the show, but does not inflate the number of online bills. This fixes the new November 23 Turtle Boyz booking ($45 cash planned) displaying as a fifth bill alongside four online bills totaling $193.29. The running app also needed Reload after the external JSON update; verified it loads the new booking and $140 due at shows. Current source data, owner costs and Results formula remain unchanged. Regression coverage exercises an online bill beside an unpaid future cash booking. Deployment/verification recorded in the October 20 Card Shows handoff.
 
 ## v0.9.6, 2026-10-20: Results Performance column + sortable headers
 Results tab now matches the HTML dashboard: removed the After cost column; added last column Performance = Portfolio change + Realized - Show cost (signed, green/red, emphasized), with a Performance total first in the totals row. Order: Date | Show | Trans | Portfolio change | - Show cost | Realized | Potential | Per trans | Performance. Every column header is clickable to sort (default Date ascending; click again to flip; text by text, numbers numerically). Realized is no longer "info only". Logic `CardShowResults.cs`, sorting in `CardShowsPageViewModel.cs` (`SortResultsCommand`).

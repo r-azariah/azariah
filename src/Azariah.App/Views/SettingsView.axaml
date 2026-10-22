@@ -22,6 +22,15 @@
       <TextBlock Classes="h1" Text="Settings" />
 
       <StackPanel Spacing="10">
+        <TextBlock Classes="h3" Text="Guest page" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Classes="label" VerticalAlignment="Center" TextWrapping="Wrap"
+                     Text="What AZARIAH shows on a PC that isn't one of your devices." />
+          <Button Grid.Column="1" Content="Preview guest page" Command="{Binding PreviewGuestCommand}" VerticalAlignment="Center" />
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="10">
         <TextBlock Classes="h3" Text="Auto-launch on this PC" />
         <Grid ColumnDefinitions="140,*,Auto">
           <TextBlock Classes="label" Text="{Binding MachineName}" />

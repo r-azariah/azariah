@@ -1,0 +1,119 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Azariah.App.ViewModels"
+             xmlns:app="using:Azariah.App"
+             x:Class="Azariah.App.Views.GuestView"
+             x:DataType="vm:GuestViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.key">
+      <Setter Property="Foreground" Value="{DynamicResource AzMutedBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.tile">
+      <Setter Property="Background" Value="{DynamicResource AzSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AzBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{StaticResource AzCardRadius}" />
+      <Setter Property="Padding" Value="20,18" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Button.tile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AzHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AzAccentBrush}" />
+    </Style>
+    <Style Selector="Button.row">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0,5" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Button.row:pointerover TextBlock.name">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+  <!-- Home: greeting + tiles -->
+  <ScrollViewer IsVisible="{Binding IsHome}">
+    <StackPanel Spacing="34" Margin="48,56,48,40" MaxWidth="1040" HorizontalAlignment="Left">
+      <StackPanel Spacing="8">
+        <TextBlock Text="HELLO" FontSize="76" FontWeight="Bold" LetterSpacing="2" />
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <TextBlock Text="From" FontSize="20" Classes="key" VerticalAlignment="Center" />
+          <Path Data="{x:Static app:Brand.Wordmark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform"
+                Height="22" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Classes="key" Margin="0,6,0,0"
+                   Text="You're on a PC that isn't one of Azariah's. Here's what you can do." />
+        <TextBlock Classes="danger" FontSize="13" Text="{Binding Status}" IsVisible="{Binding HasStatus}" />
+      </StackPanel>
+
+      <ItemsControl ItemsSource="{Binding Tiles}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:GuestTile">
+            <Button Classes="tile" Width="320" Margin="0,0,16,16" Command="{Binding Command}">
+              <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="SemiBold" />
+                <Border Grid.Column="1" Background="{DynamicResource AzAccentSoftBrush}" CornerRadius="999" Padding="8,2"
+                        VerticalAlignment="Top" IsVisible="{Binding HasBadge}">
+                  <TextBlock Text="{Binding Badge}" FontSize="11" Classes="key" />
+                </Border>
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Subtitle}" Classes="key" Margin="0,6,0,0"
+                           TextWrapping="Wrap" />
+              </Grid>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+
+  <!-- Biggest files on this PC -->
+  <Grid IsVisible="{Binding IsBigFiles}" RowDefinitions="Auto,Auto,*" Margin="48,40,48,28">
+    <Button Classes="ghost" Content="&#x2190;  Back" Command="{Binding BackCommand}" HorizontalAlignment="Left" />
+    <StackPanel Grid.Row="1" Spacing="4" Margin="0,16,0,10">
+      <TextBlock Classes="h1" Text="Biggest files on this PC" />
+      <TextBlock Classes="key" Text="{Binding ScanText}" />
+    </StackPanel>
+    <ScrollViewer Grid.Row="2">
+      <ItemsControl ItemsSource="{Binding BigFiles}" MaxWidth="1040" HorizontalAlignment="Left">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:SpaceFileItem">
+            <Grid ColumnDefinitions="*,110,Auto" Margin="0,3">
+              <StackPanel Spacing="1">
+                <TextBlock Classes="name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="key" FontSize="12" Text="{Binding LocationText}" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+              <TextBlock Grid.Column="1" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+              <Button Grid.Column="2" Classes="ghost" Content="Show" Margin="12,0,0,0" VerticalAlignment="Center"
+                      Command="{Binding $parent[UserControl].((vm:GuestViewModel)DataContext).OpenBigFileCommand}" CommandParameter="{Binding}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+
+  <!-- Shared files (Setup Kit) -->
+  <Grid IsVisible="{Binding IsShared}" RowDefinitions="Auto,*" Margin="48,40,28,20">
+    <Button Classes="ghost" Content="&#x2190;  Back" Command="{Binding BackCommand}" HorizontalAlignment="Left" Margin="0,0,0,10" />
+    <ContentControl Grid.Row="1" Content="{Binding Shared}" />
+  </Grid>
+
+  <!-- Owner preview banner -->
+  <Border IsVisible="{Binding IsPreview}" VerticalAlignment="Top" Background="{DynamicResource AzAccentSoftBrush}" Padding="48,9">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Classes="key" VerticalAlignment="Center" Text="Preview — this is what guests see on another PC." />
+      <Button Grid.Column="1" Classes="ghost" Content="Exit preview" Command="{Binding ExitPreviewCommand}" />
+    </Grid>
+  </Border>
+  </Panel>
+</UserControl>

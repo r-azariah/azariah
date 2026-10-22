@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Azariah.Core.Devices;
 using Azariah.Core.Drive;
 using Azariah.Core.Files;
 using Azariah.Core.Launcher;
@@ -15,6 +16,7 @@ namespace Azariah.Core.Serialization;
     ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip,
     AllowTrailingCommas = true)]
 [JsonSerializable(typeof(DriveMarker))]
+[JsonSerializable(typeof(OwnerDevices))]
 [JsonSerializable(typeof(TrashInfo))]
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(RecentFilesDocument))]

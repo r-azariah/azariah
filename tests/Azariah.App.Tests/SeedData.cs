@@ -41,14 +41,16 @@ internal static class SeedData
         File.WriteAllText(Path.Combine(notes, "Daily", "2026-09-23.md"), "# 2026-09-23\n\n- 21:40 Moved Games into Roblox\n");
     }
 
-    public static WorkspaceViewModel OpenWorkspace(out string root)
+    public static WorkspaceViewModel OpenWorkspace(out string root) =>
+        Assert.IsType<WorkspaceViewModel>(OpenMain(out root).Current);
+
+    public static MainViewModel OpenMain(out string root)
     {
         root = Path.Combine(Path.GetTempPath(), "azariah-ui", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         var volumes = new SystemVolumeProvider();
         var marker = new DriveInitializer(volumes).Initialize(root, "AZARIAH");
         Write(root);
-        var main = new MainViewModel(new LocateResult(LocateOutcome.Found, root, marker, "test", []), volumes, new DriveRootLocator(volumes));
-        return Assert.IsType<WorkspaceViewModel>(main.Current);
+        return new MainViewModel(new LocateResult(LocateOutcome.Found, root, marker, "test", []), volumes, new DriveRootLocator(volumes));
     }
 }
