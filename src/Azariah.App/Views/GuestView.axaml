@@ -76,30 +76,61 @@
     </StackPanel>
   </ScrollViewer>
 
-  <!-- Biggest files on this PC -->
-  <Grid IsVisible="{Binding IsBigFiles}" RowDefinitions="Auto,Auto,*" Margin="48,40,48,28">
+  <!-- Storage: friendly categories as bars, click one to see its files -->
+  <Grid IsVisible="{Binding IsStorage}" RowDefinitions="Auto,Auto,*" Margin="48,40,48,28">
     <Button Classes="ghost" Content="&#x2190;  Back" Command="{Binding BackCommand}" HorizontalAlignment="Left" />
-    <StackPanel Grid.Row="1" Spacing="4" Margin="0,16,0,10">
-      <TextBlock Classes="h1" Text="Biggest files on this PC" />
+    <StackPanel Grid.Row="1" Spacing="4" Margin="0,16,0,14">
+      <TextBlock Classes="h1" Text="Storage" />
       <TextBlock Classes="key" Text="{Binding ScanText}" />
     </StackPanel>
-    <ScrollViewer Grid.Row="2">
-      <ItemsControl ItemsSource="{Binding BigFiles}" MaxWidth="1040" HorizontalAlignment="Left">
+
+    <!-- Overview: category bars -->
+    <ScrollViewer Grid.Row="2" IsVisible="{Binding IsOverview}">
+      <ItemsControl ItemsSource="{Binding Categories}" MaxWidth="860" HorizontalAlignment="Left">
         <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="vm:SpaceFileItem">
-            <Grid ColumnDefinitions="*,110,Auto" Margin="0,3">
-              <StackPanel Spacing="1">
-                <TextBlock Classes="name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                <TextBlock Classes="key" FontSize="12" Text="{Binding LocationText}" TextTrimming="CharacterEllipsis" />
+          <DataTemplate DataType="vm:GuestCategory">
+            <Button Classes="row" Margin="0,7" Padding="0,2"
+                    Command="{Binding $parent[UserControl].((vm:GuestViewModel)DataContext).OpenCategoryCommand}" CommandParameter="{Binding}">
+              <StackPanel Spacing="7">
+                <Grid ColumnDefinitions="*,Auto,120">
+                  <TextBlock Classes="name" Text="{Binding Name}" FontSize="15" FontWeight="Medium" />
+                  <TextBlock Grid.Column="1" Classes="key" FontSize="12" Text="{Binding CountText}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                  <TextBlock Grid.Column="2" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+                <Border Width="460" Height="10" CornerRadius="3" HorizontalAlignment="Left" Background="{DynamicResource AzHoverBrush}">
+                  <Border Width="{Binding BarWidth}" CornerRadius="3" HorizontalAlignment="Left" Background="{DynamicResource AzAccentBrush}" />
+                </Border>
               </StackPanel>
-              <TextBlock Grid.Column="1" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-              <Button Grid.Column="2" Classes="ghost" Content="Show" Margin="12,0,0,0" VerticalAlignment="Center"
-                      Command="{Binding $parent[UserControl].((vm:GuestViewModel)DataContext).OpenBigFileCommand}" CommandParameter="{Binding}" />
-            </Grid>
+            </Button>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
     </ScrollViewer>
+
+    <!-- Drill-in: one category's biggest files -->
+    <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding !IsOverview}">
+      <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,10">
+        <Button Classes="ghost" Content="&#x2190;  All storage" Command="{Binding BackToOverviewCommand}" />
+        <TextBlock Classes="h3" VerticalAlignment="Center" Text="{Binding Opened.Name}" />
+      </StackPanel>
+      <ScrollViewer Grid.Row="1">
+        <ItemsControl ItemsSource="{Binding Opened.Files}" MaxWidth="1040" HorizontalAlignment="Left">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:SpaceFileItem">
+              <Grid ColumnDefinitions="*,110,Auto" Margin="0,3">
+                <StackPanel Spacing="1">
+                  <TextBlock Classes="name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="key" FontSize="12" Text="{Binding LocationText}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <Button Grid.Column="2" Classes="ghost" Content="Show" Margin="12,0,0,0" VerticalAlignment="Center"
+                        Command="{Binding $parent[UserControl].((vm:GuestViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Grid>
   </Grid>
 
   <!-- Shared files (Setup Kit) -->

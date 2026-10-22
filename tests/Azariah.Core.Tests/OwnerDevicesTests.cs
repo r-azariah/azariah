@@ -42,6 +42,48 @@ public class OwnerDevicesTests
         Assert.Null(OwnerDeviceMatch.Harden(devices, new DeviceInfo("ZOTAC-FRAKENST", null)));
     }
 
+    [Theory]
+    [InlineData(@"C:\Users\me\Downloads\x.jpg", ContentKind.Downloads)]
+    [InlineData(@"C:\Steam\steamapps\common\game\data.pak", ContentKind.Games)]
+    [InlineData(@"C:\Users\me\Pictures\trip.jpg", ContentKind.Photos)]
+    [InlineData(@"C:\Users\me\Videos\clip.mp4", ContentKind.Videos)]
+    [InlineData(@"C:\Users\me\Music\song.flac", ContentKind.Music)]
+    [InlineData(@"C:\Users\me\Documents\report.pdf", ContentKind.Documents)]
+    [InlineData(@"C:\Users\me\Desktop\setup.exe", ContentKind.Installers)]
+    [InlineData(@"C:\Users\me\Desktop\backup.zip", ContentKind.Archives)]
+    [InlineData(@"C:\Users\me\code\main.cs", ContentKind.AppsAndCode)]
+    [InlineData(@"C:\Users\me\Desktop\mystery.xyz", ContentKind.Other)]
+    public void Classify_uses_folder_keywords_then_type(string path, ContentKind expected)
+    {
+        // Normalize the separators for the host so the segment split matches.
+        var local = path.Replace('\\', Path.DirectorySeparatorChar);
+        Assert.Equal(expected, PcContent.Classify(local));
+    }
+
+    [Fact]
+    public void Content_scan_groups_by_category_biggest_first()
+    {
+        var root = Directory.CreateTempSubdirectory("azariah-content").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "a.mp4"), new string('v', 6000));
+            File.WriteAllText(Path.Combine(root, "b.mp4"), new string('v', 3000));
+            File.WriteAllText(Path.Combine(root, "c.pdf"), new string('d', 1000));
+
+            var report = PcContent.Scan([root]);
+            Assert.Equal(10_000, report.TotalBytes);
+            Assert.Equal(3, report.TotalFiles);
+            Assert.Equal("Videos", report.Categories[0].Name);
+            Assert.Equal(9000, report.Categories[0].Bytes);
+            Assert.Equal(2, report.Categories[0].FileCount);
+            Assert.Equal("b.mp4", report.Categories[0].TopFiles[1].Name);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public void Big_files_scanner_returns_the_largest_first()
     {

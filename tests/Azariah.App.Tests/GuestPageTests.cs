@@ -30,7 +30,7 @@ public class GuestPageTests
     }
 
     [AvaloniaFact]
-    public async Task Guest_biggest_files_scan_lists_something_and_renders()
+    public async Task Guest_storage_groups_into_categories_and_renders()
     {
         var main = OpenWith([new OwnerDevice("SOME-OTHER-PC", "other-guid", DateTimeOffset.UtcNow)], out _);
         var guest = Assert.IsType<GuestViewModel>(main.Current);
@@ -43,11 +43,23 @@ public class GuestPageTests
         var shots = Environment.GetEnvironmentVariable("AZARIAH_SCREENSHOTS");
         Save(window.CaptureRenderedFrame(), shots, "guest.png");
 
-        guest.ShowBigFilesCommand.Execute(null);
+        guest.ShowStorageCommand.Execute(null);
         await guest.Pending;
-        Assert.True(guest.IsBigFiles);
-        Assert.NotEmpty(guest.BigFiles); // the test runner's own profile has files
+        Assert.True(guest.IsStorage);
+        Assert.True(guest.IsOverview);
+        Assert.NotEmpty(guest.Categories); // the test runner's own profile has files
+        Assert.All(guest.Categories, c => Assert.True(c.BarWidth > 0));
 
+        // Drill into the first category, then render the bars view.
+        var first = guest.Categories[0];
+        guest.OpenCategoryCommand.Execute(first);
+        Assert.False(guest.IsOverview);
+        Assert.Same(first, guest.Opened);
+        guest.BackToOverviewCommand.Execute(null);
+        Assert.True(guest.IsOverview);
+
+        Dispatcher.UIThread.RunJobs();
+        Save(window.CaptureRenderedFrame(), shots, "guest-storage.png");
         window.Close();
     }
 

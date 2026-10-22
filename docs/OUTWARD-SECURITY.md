@@ -25,8 +25,12 @@ The owner's private files must not be readable on a non-owner PC without the pas
 `GuestViewModel` + `GuestView.axaml`. Greeting "HELLO / From [AZARIAH]" and big tiles:
 - **Windows makeover** (works): runs the Windhawk kit installer at
   `SetupKit\Installers\Utilities\Windhawk\Install Windhawk.cmd` (confirm first; Windows asks for admin).
-- **Biggest files** (works): scans this PC's user folders, shows the largest files, "Show" reveals one.
-  Core `src/Azariah.Core/Space/BigFilesScanner.cs` (read-only).
+- **Storage** (works): a visual breakdown of this PC by friendly category shown as bars (Downloads, Other,
+  Installers, Apps and code, Archives, Photos, Games, Videos, Documents, Music), biggest first. Click a bar
+  to drill into that category's biggest files; "Show" reveals one in Explorer. Classification is rules only,
+  no AI: folder keywords first (Downloads, Steam/Games), then file type. Core
+  `src/Azariah.Core/Space/PcContent.cs` (categories) and `BigFilesScanner.cs` (user roots), read-only.
+  Still possible: a toggle for other views (treemap, flat biggest-files list).
 - **Shared files** (works): the Setup Kit (Public/Transfer can be added), so friends can reach what the
   owner shared. Never surfaces owner Notes, games, card shows or the full Files.
 - **Optimize PC**, **Local AI**, **Virus check**: tiles marked "Soon" (not built).

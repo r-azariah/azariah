@@ -9,8 +9,9 @@ Built the outward-facing guest page and owner-device detection. Full spec and re
   (`src/Azariah.Core/Devices/`). Seeded with LAPTOPBRUH (real MachineGuid) + ZOTAC-FRAKENST (name only,
   hardens on its first owner run). Not a security boundary; real protection is the planned encryption.
 - **Guest page** (`GuestViewModel` / `GuestView.axaml`): HELLO / From [AZARIAH] greeting + tiles. Working:
-  Windows makeover (runs the Windhawk kit), Biggest files on this PC (`BigFilesScanner`), Shared files
-  (Setup Kit). Soon tiles: Optimize PC, Local AI, Virus check.
+  Windows makeover (runs the Windhawk kit), Storage (v0.9.9: visual category bar chart of this PC, click to
+  drill in; `PcContent.cs` classifies by folder keyword then file type, no AI), Shared files (Setup Kit).
+  Soon tiles: Optimize PC, Local AI, Virus check. Possible next: a toggle for other storage views.
 - **Preview as guest:** Settings > Preview guest page (banner + Exit preview).
 - Tests: 87 pass (68 core, 19 app). New `OwnerDevicesTests`, `GuestPageTests`.
 - **NEXT (owner asked 2026-10-22), not built, see docs/OUTWARD-SECURITY.md:**

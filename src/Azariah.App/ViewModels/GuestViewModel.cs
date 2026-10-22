@@ -10,7 +10,7 @@ namespace Azariah.App.ViewModels;
 public enum GuestPanel
 {
     Home,
-    BigFiles,
+    Storage,
     Shared,
 }
 
@@ -21,6 +21,10 @@ public sealed record GuestTile(string Title, string Subtitle, string? Badge, IRe
     public bool HasBadge => !string.IsNullOrEmpty(Badge);
 }
 
+/// <summary>A friendly storage category shown as a bar (Photos, Downloads, Videos...), with its biggest
+/// files for the drill-in. <see cref="BarWidth"/> is pixels against the view's fixed track width.</summary>
+public sealed record GuestCategory(string Name, string SizeText, string CountText, double BarWidth, IReadOnlyList<SpaceFileItem> Files);
+
 /// <summary>
 /// The outward page AZARIAH shows on a PC that isn't one of the owner's: a greeting and a few big,
 /// easy tools a guest can run, plus the files the owner chose to share. It never surfaces the owner's
@@ -28,6 +32,9 @@ public sealed record GuestTile(string Title, string Subtitle, string? Badge, IRe
 /// </summary>
 public sealed partial class GuestViewModel : ViewModelBase
 {
+    /// <summary>The widest bar in the storage chart, in pixels; the view's track matches it.</summary>
+    public const double BarTrack = 460;
+
     private readonly WorkspaceSession _s;
     private readonly Action? _exitPreview;
 
@@ -39,7 +46,7 @@ public sealed partial class GuestViewModel : ViewModelBase
         Tiles =
         [
             new GuestTile("Windows makeover", "Windhawk with Azariah's mods", null, MakeoverCommand),
-            new GuestTile("Biggest files", "See what's filling this PC", null, ShowBigFilesCommand),
+            new GuestTile("Storage", "See what's filling this PC", null, ShowStorageCommand),
             new GuestTile("Shared files", "Public, Transfer and the Setup Kit", null, ShowSharedCommand),
             new GuestTile("Optimize PC", "Clear junk and tune it up", "Soon", ComingSoonCommand),
             new GuestTile("Local AI", "Runs on this PC, stored on the flash", "Soon", ComingSoonCommand),
@@ -51,7 +58,8 @@ public sealed partial class GuestViewModel : ViewModelBase
 
     public FilesPageViewModel Shared { get; }
 
-    public ObservableCollection<SpaceFileItem> BigFiles { get; } = [];
+    /// <summary>Storage split into friendly categories, biggest first.</summary>
+    public ObservableCollection<GuestCategory> Categories { get; } = [];
 
     public string DriveName => _s.Marker.DisplayName.Trim('[', ']', ' ');
 
@@ -60,14 +68,20 @@ public sealed partial class GuestViewModel : ViewModelBase
 
     public bool IsHome => Panel == GuestPanel.Home;
 
-    public bool IsBigFiles => Panel == GuestPanel.BigFiles;
+    public bool IsStorage => Panel == GuestPanel.Storage;
 
     public bool IsShared => Panel == GuestPanel.Shared;
+
+    /// <summary>In the storage panel: the bar overview (no category opened) vs one category's files.</summary>
+    public bool IsOverview => Opened is null;
 
     public bool HasStatus => !string.IsNullOrEmpty(Status);
 
     [ObservableProperty]
     public partial GuestPanel Panel { get; set; } = GuestPanel.Home;
+
+    [ObservableProperty]
+    public partial GuestCategory? Opened { get; set; }
 
     [ObservableProperty]
     public partial bool IsScanning { get; set; }
@@ -78,16 +92,18 @@ public sealed partial class GuestViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? Status { get; set; }
 
-    /// <summary>Finishes when the current big-files scan is done (used by tests).</summary>
+    /// <summary>Finishes when the current storage scan is done (used by tests).</summary>
     public Task Pending { get; private set; } = Task.CompletedTask;
 
     partial void OnPanelChanged(GuestPanel value)
     {
         Status = null;
         OnPropertyChanged(nameof(IsHome));
-        OnPropertyChanged(nameof(IsBigFiles));
+        OnPropertyChanged(nameof(IsStorage));
         OnPropertyChanged(nameof(IsShared));
     }
+
+    partial void OnOpenedChanged(GuestCategory? value) => OnPropertyChanged(nameof(IsOverview));
 
     partial void OnStatusChanged(string? value) => OnPropertyChanged(nameof(HasStatus));
 
@@ -129,11 +145,18 @@ public sealed partial class GuestViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ShowBigFiles()
+    private void ShowStorage()
     {
-        Panel = GuestPanel.BigFiles;
+        Opened = null;
+        Panel = GuestPanel.Storage;
         Pending = ScanAsync();
     }
+
+    [RelayCommand]
+    private void OpenCategory(GuestCategory category) => Opened = category;
+
+    [RelayCommand]
+    private void BackToOverview() => Opened = null;
 
     [RelayCommand]
     private void ShowShared() => Panel = GuestPanel.Shared;
@@ -142,24 +165,33 @@ public sealed partial class GuestViewModel : ViewModelBase
     private void ComingSoon() => Status = "Coming soon.";
 
     [RelayCommand]
-    private void OpenBigFile(SpaceFileItem file) => _s.Shell.Reveal(file.Path);
+    private void OpenFile(SpaceFileItem file) => _s.Shell.Reveal(file.Path);
 
     private async Task ScanAsync()
     {
-        BigFiles.Clear();
+        Categories.Clear();
         IsScanning = true;
-        ScanText = "Scanning this PC…";
+        ScanText = "Looking through this PC…";
         try
         {
-            var files = await BigFilesScanner.ScanAsync(BigFilesScanner.UserRoots(), top: 30);
-            foreach (var file in files)
+            var report = await PcContent.ScanAsync(BigFilesScanner.UserRoots());
+            var largest = Math.Max(1, report.LargestCategoryBytes);
+            foreach (var category in report.Categories)
             {
-                BigFiles.Add(new SpaceFileItem(file.FullPath, file.Name, Format.Bytes(file.Size ?? 0), Folder(file.FullPath)));
+                var files = category.TopFiles
+                    .Select(f => new SpaceFileItem(f.FullPath, f.Name, Format.Bytes(f.Size ?? 0), Folder(f.FullPath)))
+                    .ToList();
+                Categories.Add(new GuestCategory(
+                    category.Name,
+                    Format.Bytes(category.Bytes),
+                    category.FileCount == 1 ? "1 file" : string.Create(CultureInfo.CurrentCulture, $"{category.FileCount:N0} files"),
+                    Math.Max(3, BarTrack * category.Bytes / largest),
+                    files));
             }
 
-            ScanText = BigFiles.Count == 0
+            ScanText = report.TotalFiles == 0
                 ? "Nothing found in the usual folders."
-                : string.Create(CultureInfo.CurrentCulture, $"Top {BigFiles.Count} by size in your folders");
+                : string.Create(CultureInfo.CurrentCulture, $"{Format.Bytes(report.TotalBytes)} across {report.TotalFiles:N0} files in your folders");
         }
         catch (Exception ex)
         {
