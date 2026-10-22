@@ -43,7 +43,23 @@ The owner's private files must not be readable on a non-owner PC without the pas
   into the verified PC copy, never run from the USB. Picks a model to fit the PC's GPU/VRAM/RAM.
 - **Virus check**: a Windows Defender quick scan (`Start-MpScan`/`MpCmdRun -Scan`), results shown. Benign.
 
-## Password unlock on a non-owner PC (SPEC, not built)
+## Password unlock on a non-owner PC (BUILT, v0.9.10)
+- Type the password anywhere on the guest page to unlock into the full workspace (ambient key capture in
+  `GuestView.axaml.cs`; typing in a text box is left alone). Enter or Tab-twice resets the entry; a wrong
+  8-digit entry or a reset is a strike. 5 strikes -> the drive ejects (`UsbEject`, best effort) and the
+  guest page locks; the lock time is written to `.azariah/lock.json` first, so a re-plug within 10 minutes
+  stays on the locked screen with a countdown, then clears. Logic: `src/Azariah.Core/Devices/GuestLock.cs`.
+- **Test mode** (owner, Settings > Enter test mode): runs the guest page on an owner device for 15 minutes
+  so the owner can feel it, including locking themselves out, SAFELY: in test mode nothing is really ejected
+  and no lock is saved, a top banner shows the time left and an always-available Exit test, and the session
+  ends on its own after 15 minutes. `GuestViewModel.IsPreview` guards the real eject/persist.
+- Test password `88801550` is a placeholder compared in memory only; never stored. Replace with an Argon2id
+  verifier when encryption lands.
+- **Reality check (owner, 2026-10-22):** the eject + lock is only a deterrent. A guest can open File Explorer
+  and copy the drive, since the files are not yet encrypted. The lock makes the UX; **encryption below is the
+  real security.** Build it next.
+
+### Original spec (kept for reference)
 Lets the owner turn a guest session into the full workspace by typing a password, for when the owner is
 on someone else's PC.
 - **Test password (placeholder): `88801550`.** This is temporary. NEVER store the password in plaintext.

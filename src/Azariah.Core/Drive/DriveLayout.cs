@@ -36,6 +36,7 @@ public sealed class DriveLayout
     public string SystemFolder => Path.Combine(Root, SystemFolderName);
     public string MarkerFile => Path.Combine(SystemFolder, MarkerFileName);
     public string DevicesFile => Path.Combine(SystemFolder, "devices.json");
+    public string LockFile => Path.Combine(SystemFolder, "lock.json");
     public string SettingsFile => Path.Combine(SystemFolder, "settings.json");
     public string RecentFile => Path.Combine(SystemFolder, "recent.json");
     public string LogsFolder => Path.Combine(SystemFolder, "logs");

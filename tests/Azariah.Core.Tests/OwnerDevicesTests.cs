@@ -61,6 +61,27 @@ public class OwnerDevicesTests
     }
 
     [Fact]
+    public void Five_strikes_lock_for_ten_minutes_then_clear()
+    {
+        var now = new DateTimeOffset(2026, 10, 22, 12, 0, 0, TimeSpan.Zero);
+        var state = new GuestLockState();
+
+        for (var i = 0; i < 4; i++)
+        {
+            state = GuestLock.Strike(state, now);
+            Assert.False(GuestLock.IsLocked(state, now));
+        }
+
+        state = GuestLock.Strike(state, now);
+        Assert.True(GuestLock.IsLocked(state, now));
+        Assert.Equal(GuestLock.LockDuration, GuestLock.Remaining(state, now));
+        Assert.True(GuestLock.IsLocked(state, now.AddMinutes(9)));
+        Assert.False(GuestLock.IsLocked(state, now.AddMinutes(10)));
+        Assert.Equal(0, GuestLock.Refresh(state, now.AddMinutes(10)).Strikes);
+        Assert.Equal(0, GuestLock.Unlock().Strikes);
+    }
+
+    [Fact]
     public void Content_scan_groups_by_category_biggest_first()
     {
         var root = Directory.CreateTempSubdirectory("azariah-content").FullName;

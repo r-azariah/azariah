@@ -17,6 +17,7 @@ namespace Azariah.Core.Serialization;
     AllowTrailingCommas = true)]
 [JsonSerializable(typeof(DriveMarker))]
 [JsonSerializable(typeof(OwnerDevices))]
+[JsonSerializable(typeof(GuestLockState))]
 [JsonSerializable(typeof(TrashInfo))]
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(RecentFilesDocument))]

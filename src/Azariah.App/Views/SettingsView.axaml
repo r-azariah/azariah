@@ -25,8 +25,8 @@
         <TextBlock Classes="h3" Text="Guest page" />
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Classes="label" VerticalAlignment="Center" TextWrapping="Wrap"
-                     Text="What AZARIAH shows on a PC that isn't one of your devices." />
-          <Button Grid.Column="1" Content="Preview guest page" Command="{Binding PreviewGuestCommand}" VerticalAlignment="Center" />
+                     Text="What AZARIAH shows on a PC that isn't one of your devices. Test mode runs it here for 15 minutes; nothing is really ejected or locked, and you can exit any time." />
+          <Button Grid.Column="1" Content="Enter test mode" Command="{Binding PreviewGuestCommand}" VerticalAlignment="Center" />
         </Grid>
       </StackPanel>
 

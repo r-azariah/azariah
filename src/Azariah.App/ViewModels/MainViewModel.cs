@@ -87,7 +87,7 @@ public sealed partial class MainViewModel : ViewModelBase
         workspace.PreviewGuestRequested += () =>
         {
             _previewFrom = workspace;
-            Current = new GuestViewModel(session, ExitGuestPreview);
+            Current = new GuestViewModel(session, exitPreview: ExitGuestPreview, onUnlock: ExitGuestPreview);
         };
         if (pageKey is not null)
         {
@@ -105,7 +105,7 @@ public sealed partial class MainViewModel : ViewModelBase
         var layout = new DriveLayout(root);
         var session = new WorkspaceSession(layout, marker, _volumes, DialogService, Ui, Shell);
         App.ApplyTheme(session.Settings.Theme);
-        Current = new GuestViewModel(session);
+        Current = new GuestViewModel(session, onUnlock: () => OpenWorkspace(root, marker));
         WindowTitle = Brand.Name;
         session.Log.Info("Guest page opened (not an owner device).");
         StartMonitor(root, marker.DriveId);

@@ -1,5 +1,21 @@
 # Checkpoint / TODO
 
+## October 22, 2026 | Claude, laptop | v0.9.10 guest password unlock + lockout + test mode
+
+See `docs/OUTWARD-SECURITY.md` (the "Password unlock" section) for the full behavior.
+- **Unlock:** type `88801550` anywhere on the guest page -> opens the full workspace. Enter/Tab-twice resets;
+  wrong entry or reset = a strike. **5 strikes -> eject (`UsbEject`, best effort) + lock 10 min** (written to
+  `.azariah/lock.json` first; re-plug within the window stays locked with a countdown). `Core/Devices/GuestLock.cs`.
+- **Test mode** (Settings > Enter test mode): the owner runs the guest page for 15 min on their own PC to feel
+  it, including locking out, but **sandboxed** (no real eject, no saved lock, banner with time left + Exit test,
+  auto-exits at 15 min). Guarded by `GuestViewModel.IsPreview`.
+- Password `88801550` is a placeholder (in-memory compare, never stored).
+- 101 tests pass (80 core, 21 app). New `GuestLock` tests + VM unlock/lockout tests.
+- **THE REAL SECURITY IS STILL TODO:** the lock is a deterrent only; a guest can copy the drive in File
+  Explorer because files are not encrypted. Next: encrypt the owner's private files (names/sizes/contents),
+  owner devices auto-unlock, standard crypto (Argon2id + AES-256-GCM), format tests first, read SECURITY.md.
+  Then wire the real password to the KDF verifier (replace the placeholder).
+
 ## October 22, 2026 | Claude, laptop | v0.9.8 outward/guest page + device identity
 
 Built the outward-facing guest page and owner-device detection. Full spec and remaining work are in

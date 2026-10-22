@@ -1,6 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Text;
+using Avalonia.Threading;
+using Azariah.App.Platform;
 using Azariah.App.Services;
+using Azariah.Core.Devices;
 using Azariah.Core.Space;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -35,13 +39,55 @@ public sealed partial class GuestViewModel : ViewModelBase
     /// <summary>The widest bar in the storage chart, in pixels; the view's track matches it.</summary>
     public const double BarTrack = 460;
 
+    // TEST placeholder password (owner-chosen). It is compared in memory only and never stored on the
+    // drive. Replace with an Argon2id verifier when file encryption lands; do not ship this as the real gate.
+    private const string UnlockPassword = "88801550";
+
+    /// <summary>Test mode (the owner previewing on their own device) ends on its own after this long.</summary>
+    public static readonly TimeSpan TestDuration = TimeSpan.FromMinutes(15);
+
     private readonly WorkspaceSession _s;
     private readonly Action? _exitPreview;
+    private readonly Action? _onUnlock;
+    private readonly GuestLockStore _lockStore;
+    private readonly StringBuilder _typed = new();
+    private readonly DispatcherTimer _countdown;
+    private readonly DispatcherTimer? _testTimer;
+    private GuestLockState _lockState;
+    private DateTimeOffset _testEnds;
+    private bool _lastKeyTab;
 
-    public GuestViewModel(WorkspaceSession session, Action? exitPreview = null)
+    public GuestViewModel(WorkspaceSession session, Action? exitPreview = null, Action? onUnlock = null)
     {
         _s = session;
         _exitPreview = exitPreview;
+        _onUnlock = onUnlock;
+        _lockStore = new GuestLockStore(session.Layout);
+        _countdown = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => TickCountdown());
+
+        // Clear an expired lock on open; show the locked screen if still inside the window.
+        var now = DateTimeOffset.Now;
+        _lockState = GuestLock.Refresh(_lockStore.Load(), now);
+        if (!IsPreview)
+        {
+            _lockStore.Save(_lockState);
+        }
+
+        if (GuestLock.IsLocked(_lockState, now))
+        {
+            EnterLockedUi();
+        }
+
+        // In test mode (owner preview), strikes and the locked screen run but nothing is ejected or saved
+        // (IsPreview guards those), and the whole session ends on its own after TestDuration.
+        if (IsPreview)
+        {
+            _testEnds = now + TestDuration;
+            _testTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => TickTest());
+            _testTimer.Start();
+            TickTest();
+        }
+
         Shared = FilesPageViewModel.SetupKit(session);
         Tiles =
         [
@@ -75,6 +121,9 @@ public sealed partial class GuestViewModel : ViewModelBase
     /// <summary>In the storage panel: the bar overview (no category opened) vs one category's files.</summary>
     public bool IsOverview => Opened is null;
 
+    /// <summary>True while the owner is part-way through typing the unlock code (so Enter/Tab reset it).</summary>
+    public bool IsEntering => _typed.Length > 0;
+
     public bool HasStatus => !string.IsNullOrEmpty(Status);
 
     [ObservableProperty]
@@ -92,8 +141,134 @@ public sealed partial class GuestViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? Status { get; set; }
 
+    /// <summary>After too many unlock attempts: the drive ejected and the guest page is locked.</summary>
+    [ObservableProperty]
+    public partial bool IsLocked { get; set; }
+
+    [ObservableProperty]
+    public partial string LockText { get; set; } = string.Empty;
+
+    /// <summary>Time left in test mode, e.g. "14:32 left". Empty outside test mode.</summary>
+    [ObservableProperty]
+    public partial string TestLeftText { get; set; } = string.Empty;
+
     /// <summary>Finishes when the current storage scan is done (used by tests).</summary>
     public Task Pending { get; private set; } = Task.CompletedTask;
+
+    /// <summary>A digit typed anywhere on the guest page builds the unlock code. Non-digits are ignored.</summary>
+    public void TypeDigit(char digit)
+    {
+        if (IsLocked || !char.IsAsciiDigit(digit))
+        {
+            return;
+        }
+
+        _lastKeyTab = false;
+        _typed.Append(digit);
+        if (_typed.Length < UnlockPassword.Length)
+        {
+            return;
+        }
+
+        var attempt = _typed.ToString();
+        _typed.Clear();
+        if (string.Equals(attempt, UnlockPassword, StringComparison.Ordinal))
+        {
+            DoUnlock();
+        }
+        else
+        {
+            RegisterStrike();
+        }
+    }
+
+    /// <summary>Enter resets the current entry so the owner can retype (counts as a strike).</summary>
+    public void OnEnter()
+    {
+        _lastKeyTab = false;
+        RegisterStrike();
+    }
+
+    /// <summary>Tab twice in a row resets the current entry (counts as a strike).</summary>
+    public void OnTab()
+    {
+        if (_lastKeyTab)
+        {
+            _lastKeyTab = false;
+            RegisterStrike();
+        }
+        else
+        {
+            _lastKeyTab = true;
+        }
+    }
+
+    private void DoUnlock()
+    {
+        _typed.Clear();
+        StopTimers();
+        if (!IsPreview)
+        {
+            _lockStore.Save(GuestLock.Unlock());
+        }
+
+        _onUnlock?.Invoke();
+    }
+
+    private void RegisterStrike()
+    {
+        if (IsLocked)
+        {
+            return;
+        }
+
+        _typed.Clear();
+        var now = DateTimeOffset.Now;
+        _lockState = GuestLock.Strike(_lockState, now);
+        if (!IsPreview)
+        {
+            _lockStore.Save(_lockState);
+        }
+
+        if (GuestLock.IsLocked(_lockState, now))
+        {
+            if (!IsPreview)
+            {
+                // Lock time is already written; ejecting closes this session (we run from the PC copy).
+                UsbEject.TryEject(_s.Layout.Root);
+            }
+
+            EnterLockedUi();
+        }
+    }
+
+    private void EnterLockedUi()
+    {
+        IsLocked = true;
+        Panel = GuestPanel.Home;
+        Opened = null;
+        TickCountdown();
+        _countdown.Start();
+    }
+
+    private void TickCountdown()
+    {
+        var remaining = GuestLock.Remaining(_lockState, DateTimeOffset.Now);
+        if (remaining <= TimeSpan.Zero)
+        {
+            _countdown.Stop();
+            _lockState = GuestLock.Unlock();
+            if (!IsPreview)
+            {
+                _lockStore.Save(_lockState);
+            }
+
+            IsLocked = false;
+            return;
+        }
+
+        LockText = string.Create(CultureInfo.CurrentCulture, $"Try again in {remaining.Minutes}:{remaining.Seconds:D2}.");
+    }
 
     partial void OnPanelChanged(GuestPanel value)
     {
@@ -111,7 +286,31 @@ public sealed partial class GuestViewModel : ViewModelBase
     private void Back() => Panel = GuestPanel.Home;
 
     [RelayCommand]
-    private void ExitPreview() => _exitPreview?.Invoke();
+    private void ExitPreview() => LeaveTestMode();
+
+    private void LeaveTestMode()
+    {
+        StopTimers();
+        _exitPreview?.Invoke();
+    }
+
+    private void StopTimers()
+    {
+        _countdown.Stop();
+        _testTimer?.Stop();
+    }
+
+    private void TickTest()
+    {
+        var remaining = _testEnds - DateTimeOffset.Now;
+        if (remaining <= TimeSpan.Zero)
+        {
+            LeaveTestMode();
+            return;
+        }
+
+        TestLeftText = string.Create(CultureInfo.CurrentCulture, $"{(int)remaining.TotalMinutes}:{remaining.Seconds:D2} left");
+    }
 
     [RelayCommand]
     private async Task Makeover()

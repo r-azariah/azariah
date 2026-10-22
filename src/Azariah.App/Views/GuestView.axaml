@@ -139,11 +139,22 @@
     <ContentControl Grid.Row="1" Content="{Binding Shared}" />
   </Grid>
 
-  <!-- Owner preview banner -->
+  <!-- Locked: too many unlock attempts -->
+  <Border IsVisible="{Binding IsLocked}" Background="{DynamicResource AzWindowBrush}">
+    <StackPanel Spacing="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Path Data="{x:Static app:Brand.Mark}" Fill="{DynamicResource AzTextBrush}" Stretch="Uniform" Height="44" HorizontalAlignment="Center" />
+      <TextBlock Text="Locked" FontSize="34" FontWeight="Bold" HorizontalAlignment="Center" />
+      <TextBlock Classes="key" HorizontalAlignment="Center" Text="Too many attempts." />
+      <TextBlock Classes="key" HorizontalAlignment="Center" Text="{Binding LockText}" />
+    </StackPanel>
+  </Border>
+
+  <!-- Test-mode banner (stays on top of the locked screen so you can always get out) -->
   <Border IsVisible="{Binding IsPreview}" VerticalAlignment="Top" Background="{DynamicResource AzAccentSoftBrush}" Padding="48,9">
-    <Grid ColumnDefinitions="*,Auto">
-      <TextBlock Classes="key" VerticalAlignment="Center" Text="Preview — this is what guests see on another PC." />
-      <Button Grid.Column="1" Classes="ghost" Content="Exit preview" Command="{Binding ExitPreviewCommand}" />
+    <Grid ColumnDefinitions="*,Auto,Auto">
+      <TextBlock Classes="key" VerticalAlignment="Center" Text="Test mode. Nothing is really ejected or locked." />
+      <TextBlock Grid.Column="1" Classes="key" VerticalAlignment="Center" Margin="0,0,16,0" Text="{Binding TestLeftText}" />
+      <Button Grid.Column="2" Classes="ghost" Content="Exit test" Command="{Binding ExitPreviewCommand}" />
     </Grid>
   </Border>
   </Panel>
